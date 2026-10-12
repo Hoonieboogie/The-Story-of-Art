@@ -5,4 +5,4 @@
 | 파일 | 제목 | 종류 |
 | --- | --- | --- |
 | [youtube-gombrich-story-of-art-summary/](youtube-gombrich-story-of-art-summary/AGENTS.md) | 곰브리치 서양미술사 핵심정리 (시대별 분석 문서 24개) | YouTube 영상 |
-| [naver-blog-chapter-notes.md](naver-blog-chapter-notes.md) | 임토끼 블로그: 곰브리치서양미술사 카테고리 (장별 정리) | 네이버 블로그 |
+| [naver-blog-gombrich-chapter-notes/](naver-blog-gombrich-chapter-notes/AGENTS.md) | 임토끼 블로그: 곰브리치서양미술사 카테고리 (장별 요약 문서 49개) | 네이버 블로그 |
