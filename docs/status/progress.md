@@ -14,6 +14,8 @@
 | 2026-10-12 | YouTube 영상 분석 | [youtube-gombrich-story-of-art-summary/](../sources/youtube-gombrich-story-of-art-summary/AGENTS.md): 시대별 문서 22개 + 개요 + STT 교정 내역 |
 | 2026-10-12 | 두 소스 비교 | [comparison/](../comparison/AGENTS.md): 시대별 비교 문서 18개 (내용 차이, 해석·강조점 차이, 사실 오류·충돌) |
 | 2026-10-12 | 통합 노트 | [study-notes/](../study-notes/AGENTS.md): 두 소스를 합친 시대별 공부 노트 18개, 이전/다음 링크로 연결 |
+| 2026-10-12 | 웹사이트 기획 | [website/](../website/AGENTS.md): 인터뷰 결정 사항, 전문가 의견(UX, 큐레이터) |
+| 2026-10-12 | 랜딩 시제품 v1 | [prototype/](../../prototype/AGENTS.md) |
 | 2026-10-12 | 네이버 블로그 정리 | [naver-blog-gombrich-chapter-notes/](../sources/naver-blog-gombrich-chapter-notes/AGENTS.md): 장별 요약 문서 49개 + 개요 |
 
 ## 두 소스 요약
