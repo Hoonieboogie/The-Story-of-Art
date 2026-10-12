@@ -4,7 +4,8 @@
 
 ## 목표
 
-곰브리치 『서양 미술사(The Story of Art)』를 공부하기 위해 외부 자료를 문서로 정리한다.
+1. **자료 정리 (완료):** 곰브리치 『서양 미술사(The Story of Art)』에 관한 외부 자료를 문서로 정리하고 비교한다.
+2. **웹사이트 (진행 중):** 정리한 내용을 바탕으로, 갤러리에서 도슨트에게 설명을 듣는 것처럼 미술사를 훑는 공개 웹사이트를 만든다. 기획은 [website/](../website/AGENTS.md).
 
 ## 완료한 작업
 
@@ -12,11 +13,12 @@
 | --- | --- | --- |
 | 2026-10-12 | 문서 구조와 작성 규칙 | [documentation-rules.md](../documentation-rules.md), 각 폴더 `AGENTS.md` 룩업테이블 |
 | 2026-10-12 | YouTube 영상 분석 | [youtube-gombrich-story-of-art-summary/](../sources/youtube-gombrich-story-of-art-summary/AGENTS.md): 시대별 문서 22개 + 개요 + STT 교정 내역 |
+| 2026-10-12 | 네이버 블로그 정리 | [naver-blog-gombrich-chapter-notes/](../sources/naver-blog-gombrich-chapter-notes/AGENTS.md): 장별 요약 문서 49개 + 개요 |
 | 2026-10-12 | 두 소스 비교 | [comparison/](../comparison/AGENTS.md): 시대별 비교 문서 18개 (내용 차이, 해석·강조점 차이, 사실 오류·충돌) |
 | 2026-10-12 | 통합 노트 | [study-notes/](../study-notes/AGENTS.md): 두 소스를 합친 시대별 공부 노트 18개, 이전/다음 링크로 연결 |
 | 2026-10-12 | 웹사이트 기획 | [website/](../website/AGENTS.md): 인터뷰 결정 사항, 전문가 의견(UX, 큐레이터) |
-| 2026-10-12 | 랜딩 시제품 v1 | [prototype/](../../prototype/AGENTS.md) |
-| 2026-10-12 | 네이버 블로그 정리 | [naver-blog-gombrich-chapter-notes/](../sources/naver-blog-gombrich-chapter-notes/AGENTS.md): 장별 요약 문서 49개 + 개요 |
+| 2026-10-12 | 웹사이트 구조 결정 | 8개 시대 안에 18개 방, 아이디·비밀번호 계정, 도슨트 원고 새로 쓰기 ([decisions.md](../website/decisions.md)) |
+| 2026-10-12 | 랜딩 시제품 v1 | [prototype/](../../prototype/AGENTS.md): "책이 뜬다 → 열린다 → 타임라인" 흐름만 확정, 나머지는 다시 정한다 |
 
 ## 두 소스 요약
 
@@ -38,9 +40,9 @@
 ## 하지 않은 것 / 남은 한계
 
 - **원문 대조 검증은 하지 않기로 했다 (2026-10-12, 사용자 결정).** 영상·블로그 문서는 원문을 맞게 옮겼다고 보고, 다른 작업 중 사실 오류를 발견하면 그때 바로잡는다. 토큰 비용 때문이다.
-
 - 영상 프레임은 10초 간격과 장면 전환마다 뽑았다. 그 사이 몇 초만 뜬 화면 자막은 놓쳤을 수 있다.
 - 영상 56:44 "○○의 스승 피사로"의 ○○ 부분은 판독하지 못했다.
 - 블로그 케메니 「파동」의 정확한 연도는 확인하지 못했다. (1959년으로 추정)
 - 비교와 통합 노트의 **(보충)** 판정은 책 원문과 대조하지 않았다. 특히 18 노트의 "책 마지막 판의 포스트모더니즘 건축" 언급은 기억에 기댄 것이다.
 - 책 7장(동방의 미술)은 두 소스 모두 다루지 않아 노트에도 없다.
+- 웹사이트는 아직 화면 시제품뿐이다. 서버, 계정, 방 안의 내용은 만들지 않았다.

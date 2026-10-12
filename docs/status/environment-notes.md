@@ -18,3 +18,15 @@
 - 글 목록: `https://m.blog.naver.com/api/blogs/<blogId>/post-list?categoryNo=<n>&itemCount=30&page=1` (Referer 헤더 필요)
 - 본문: `https://m.blog.naver.com/PostView.naver?blogId=<blogId>&logNo=<logNo>` (옛 스마트에디터 2 형식, `se_component_wrap` 이후가 본문)
 - 본문 추출: BeautifulSoup로 `.se_component_wrap.sect_dsc`를 잡고, `<br>`과 블록 태그 뒤에 줄바꿈을 넣은 뒤 `get_text('')`로 합친다. 그냥 `get_text('\n')`을 쓰면 인라인 태그마다 줄이 끊긴다. 작품명·연대는 이미지 캡션 문단에 있다.
+
+## 위키미디어 커먼즈 (작품 이미지)
+
+- API와 이미지 서버 모두 User-Agent 헤더가 필요하다. 없거나 요청이 잦으면 429(요청 과다)를 준다.
+- 요청 사이에 3초 이상 쉬고, 429가 나면 수십 초 기다렸다가 다시 시도한다. 썸네일은 표준 크기(예: `iiurlwidth=1280`)로 받는다.
+- 메타데이터 API: `https://commons.wikimedia.org/w/api.php?action=query&titles=File:<이름>&prop=imageinfo&iiprop=url|size|extmetadata&iiurlwidth=1280&format=json` (`extmetadata.LicenseShortName`으로 라이선스 확인)
+
+## 시제품 화면 확인
+
+- Node 전역 `playwright`(`$(npm root -g)/playwright`)와 `/opt/pw-browsers/chromium-1194/chrome-linux/chrome`으로 스크린샷을 찍는다.
+- 아티팩트 형식 HTML은 `<!doctype>`이 없으므로, 테스트할 때는 doctype과 `<base href>`를 붙인 래퍼 파일을 만들어 연다.
+- 애니메이션은 시점별(예: 1.3초, 1.75초, 4.4초)로 여러 장을 찍어 확인한다.
