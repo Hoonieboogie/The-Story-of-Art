@@ -6,4 +6,5 @@
 | --- | --- |
 | [decisions.md](decisions.md) | 사용자 인터뷰로 확정한 사항과 미정 사항 |
 | [expert-ux-review.md](expert-ux-review.md) | UX/UI 디자이너 관점 의견 (Apple 10년 이상 경력 가정) |
+| [expert-ux-landing.md](expert-ux-landing.md) | 랜딩 페이지(책 펼침)와 이메일 없는 계정 설계 (UX/UI 디자이너) |
 | [expert-curator-review.md](expert-curator-review.md) | 큐레이터 관점 의견 (테이트 모던·메트·퐁피두 20년 이상 경력 가정) |
