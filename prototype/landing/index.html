@@ -1,7 +1,7 @@
 <title>서양 미술사 도슨트</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Black+Han+Sans&family=Cinzel:wght@500;600&family=Inter+Tight:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Black+Han+Sans&family=Cinzel:wght@500;600&family=Inter+Tight:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700;900&family=Pinyon+Script&display=swap">
 <style>
 /* Layout: 흰 벽 → 흰 책(WebGL) → 표지가 열리고 책장이 휘며 넘어간다 → 카메라가 들어가 펼친 양면이 곧 연표가 된다.
    타이포: 레퍼런스처럼 굵은 압축 그로테스크(제목) + Inter Tight(본문). 엠블럼만 고전 대문자(Cinzel).
@@ -50,34 +50,28 @@ button { font: inherit; color: inherit; }
 .ghost { position: absolute; inset: 0; pointer-events: none; user-select: none; color: var(--ghost); transform-origin: 50% 50%; }
 .ghost .line { position: absolute; left: 50%; top: 50%; white-space: nowrap; padding-inline: .04em; clip-path: inset(-.06em -100vw); }  /* 세로로만 가린다: 가로로 흘러가도 잘리지 않게 */
 .ghost .line > span { display: block; }
-/* 한글 제목: 아래 40%가 책에 가린다 */
+/* 윗줄: 아래쪽이 책에 가린다 */
 .ghost .ko {
-  font-family: var(--f-ko-display); font-weight: 400;
-  font-size: clamp(76px, 16.5vw, 262px); line-height: 1.08; letter-spacing: -.005em;
+  font-family: var(--f-display); font-stretch: 62.5%; font-weight: 900; text-transform: uppercase;
+  font-size: clamp(70px, 14vw, 230px); line-height: 1; letter-spacing: -.004em;
   transform: translate(-50%, calc(var(--bh, 50vh) / -2 - .5em));
 }
-/* 영문 제목: 책 아랫단이 위쪽을 살짝 덮는다 */
+/* 아랫줄: 책 아랫단이 위쪽을 살짝 덮는다 */
 .ghost .en {
   font-family: var(--f-display); font-stretch: 62.5%; font-weight: 900; text-transform: uppercase;
-  font-size: clamp(50px, 10.4vw, 168px); line-height: 1; letter-spacing: -.004em;
+  font-size: clamp(42px, 8vw, 130px); line-height: 1; letter-spacing: -.004em;
   transform: translate(-50%, calc(var(--bh, 50vh) / 2 - .3em));
 }
 .ghost .by {
   font-size: 10px; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: #b4afa5;
-  transform: translate(-50%, calc(var(--bh, 50vh) / 2 + clamp(50px, 10.4vw, 168px) * .74 + 16px));
+  transform: translate(-50%, calc(var(--bh, 50vh) / 2 + clamp(42px, 8vw, 130px) * .74 + 16px));
   padding-left: .32em;
 }
 .chrome {
   position: absolute; top: 0; left: 0; right: 0; z-index: 2;
-  display: flex; justify-content: space-between; align-items: center;
+  display: flex; justify-content: flex-end; align-items: center;
   padding: calc(18px + env(safe-area-inset-top, 0px)) 22px 0;
 }
-.wordmark {
-  display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--f-display); font-stretch: 62.5%; font-weight: 900; font-size: 22px;
-  text-transform: uppercase; letter-spacing: -.005em; line-height: 1;
-}
-.wordmark svg { width: 26px; height: 26px; }
 .pill {
   display: inline-flex; align-items: center; gap: 10px;
   border: 0; border-radius: 999px; cursor: pointer;
@@ -261,13 +255,12 @@ body.returning .continue { display: inline-flex; }
 <!-- 인트로: 벽, 회색 제목, WebGL 책 -->
 <div id="intro" aria-hidden="true">
   <div class="ghost" id="ghost">
-    <div class="line ko"><span>서양 미술사</span></div>
-    <div class="line en"><span>The Story of Art</span></div>
-    <div class="line by"><span>E. H. Gombrich</span></div>
+    <div class="line ko"><span>Learn to see</span></div>
+    <div class="line en"><span>30,000 years. One walk.</span></div>
+    <div class="line by"><span>A guided walk through art history</span></div>
   </div>
   <canvas id="gl"></canvas>
   <div class="chrome" id="chrome">
-    <span class="wordmark"><svg viewBox="0 0 200 200" class="em-mark"></svg>The Story of Art</span>
     <button class="pill" id="skip" type="button" tabindex="-1"><span class="dot"></span>바로 보기</button>
   </div>
 </div>
@@ -570,7 +563,7 @@ body.returning .continue { display: inline-flex; }
   const FOV = 28, TANH = Math.tan(FOV / 2 * D2R);
   const isMobile = () => innerWidth <= 760;
   const lerp = (a, b, t) => a + (b - a) * t;
-  const S = { enter: 0, face: 0, cover: 0, pages: [0, 0, 0], zoom: 0, flat: 0, px: 0, py: 0, tx: 0, ty: 0 };
+  const S = { enter: 0, face: 0, cover: 0, pages: [0, 0, 0, 0, 0], zoom: 0, flat: 0, px: 0, py: 0, tx: 0, ty: 0 };
   let G = null;
 
   const startDist = () => {
@@ -716,62 +709,44 @@ body.returning .continue { display: inline-flex; }
       }
     }));
     const pw = 1024, ph = Math.round(pw * PH / PW);
-    const art = new Image(); art.src = "img/era4.jpg";
-    await Promise.race([art.decode().catch(() => {}), new Promise(r => setTimeout(r, 1500))]);
+    // 넘어가는 낱장: 첫 장은 필기체 "Welcome", 그다음은 퍼블릭 도메인 도판이 한 면에 한 점씩
+    const PLATES = [
+      ["img/era1-full.jpg", "Garden of Nebamun, c. 1350 BC"],
+      ["img/era3-full.jpg", "Giotto, The Lamentation, c. 1305"],
+      ["img/era4-full.jpg", "Jan van Eyck, The Arnolfini Portrait, 1434"],
+      ["img/era5-full.jpg", "Caravaggio, The Incredulity of Saint Thomas, 1602"],
+      ["img/era6-full.jpg", "Jacques-Louis David, Oath of the Horatii, 1784"],
+      ["img/era7-full.jpg", "Claude Monet, Impression, Sunrise, 1872"],
+      ["img/era8-full.jpg", "Wassily Kandinsky, Composition VII, 1913"],
+    ].map(([src, cap]) => { const im = new Image(); im.src = src; return { im, cap }; });
+    await Promise.race([Promise.all(PLATES.map(p => p.im.decode().catch(() => {}))), new Promise(r => setTimeout(r, 2500))]);
+    const plate = (k, side) => (c, w, h) => {
+      paperBase(c, w, h, 10 + k); gutter(c, w, h, side);
+      const { im, cap } = PLATES[k];
+      const bx = w * .14, by = h * .14, bw = w * .72, bh = h * .62;   // 도판 자리
+      let iw = bw, ih = bh;
+      if (im.complete && im.naturalWidth) {
+        const r = im.naturalWidth / im.naturalHeight;
+        if (r > bw / bh) ih = bw / r; else iw = bh * r;
+        const ix = bx + (bw - iw) / 2, iy = by + (bh - ih) / 2;
+        c.globalCompositeOperation = "multiply"; c.drawImage(im, ix, iy, iw, ih); c.globalCompositeOperation = "source-over";
+        c.fillStyle = "#8a857c"; c.textAlign = "center";
+        setFont(c, `500 ${w * .02}px "Inter Tight"`);
+        c.fillText(cap, w / 2, iy + ih + w * .055);
+      } else { c.fillStyle = "#e5e0d6"; c.fillRect(bx, by, bw, bh); }
+    };
+    const blank = k => (c, w, h) => { paperBase(c, w, h, 20 + k); };
     const pages = [
-      { // 1장 앞: 약표제지
-        recto: (c, w, h) => {
+      { recto: (c, w, h) => {   // 표지를 열면 보이는 첫 면
           paperBase(c, w, h, 2); gutter(c, w, h, "left");
-          drawEmblem(c, MARK, w / 2, h * .4, w * .13, { stroke: "#b3ada1", fill: "#b3ada1", lw: 4 });
-          c.fillStyle = "#3a3733"; c.textAlign = "center";
-          setFont(c, `900 ${w * .05}px Archivo`, { stretch: "extra-condensed" }); c.fillText("THE STORY OF ART", w / 2, h * .5);
-        },
-        // 1장 뒤: 권두화
-        verso: (c, w, h) => {
-          paperBase(c, w, h, 3); gutter(c, w, h, "right");
-          const iw = w * .6, ih = iw * 4 / 3, ix = (w - iw) / 2, iy = h * .17;
-          if (art.complete && art.naturalWidth) { c.globalCompositeOperation = "multiply"; c.drawImage(art, ix, iy, iw, ih); c.globalCompositeOperation = "source-over"; }
-          else { c.fillStyle = "#e5e0d6"; c.fillRect(ix, iy, iw, ih); }
-          c.fillStyle = "#8a857c"; c.textAlign = "center";
-          setFont(c, `500 ${w * .021}px "Noto Sans KR"`);
-          c.fillText("얀 반 에이크, 「아르놀피니 부부의 초상」 부분, 1434년", w / 2, iy + ih + w * .06);
-        } },
-      { // 2장 앞: 표제지
-        recto: (c, w, h) => {
-          paperBase(c, w, h, 4); gutter(c, w, h, "left");
-          c.fillStyle = "#141311"; c.textAlign = "center";
-          setFont(c, `400 ${w * .125}px "Black Han Sans"`); c.fillText("서양 미술사", w / 2, h * .25);
-          setFont(c, `900 ${w * .108}px Archivo`, { stretch: "extra-condensed" }); c.fillText("THE STORY OF ART", w / 2, h * .25 + w * .13);
-          setFont(c, `600 ${w * .022}px "Inter Tight"`, { spacing: (w * .007).toFixed(1) + "px" }); c.fillText("E. H. GOMBRICH", w / 2, h * .25 + w * .2);
-          drawEmblem(c, FULL, w / 2, h * .64, w * .36, { stroke: "#57534c", fill: "#57534c", lw: 1.3 });
-        },
-        // 2장 뒤: 판권
-        verso: (c, w, h) => {
-          paperBase(c, w, h, 5); gutter(c, w, h, "right");
-          c.fillStyle = "#8a857c"; c.textAlign = "left";
-          setFont(c, `500 ${w * .022}px "Noto Sans KR"`);
-          ["E. H. 곰브리치, 『서양 미술사』", "The Story of Art · 초판 1950 · 제16판 1995", "", "이 사이트는 곰브리치의 책을 따라 걷는", "도슨트 투어예요."]
-            .forEach((s, i) => c.fillText(s, w * .12, h * .78 + i * w * .036));
-        } },
-      { // 3장 앞: 차례
-        recto: (c, w, h) => {
-          paperBase(c, w, h, 6); gutter(c, w, h, "left");
-          const x0 = w * .14, x1 = w * .88; let y = h * .16;
-          c.fillStyle = "#141311"; c.textAlign = "left";
-          setFont(c, `600 ${w * .02}px "Inter Tight"`, { spacing: "2px" }); c.fillText("CONTENTS", x0, y);
-          setFont(c, `700 ${w * .06}px "Noto Sans KR"`, { spacing: (-w * .002).toFixed(1) + "px" }); c.fillText("차례", x0, y + w * .08);
-          y += w * .17;
-          ERAS.forEach(e => {
-            c.fillStyle = "rgba(20,19,17,.16)"; c.fillRect(x0, y - w * .047, x1 - x0, 1.5);
-            c.fillStyle = "#141311";
-            setFont(c, `900 ${w * .046}px Archivo`, { stretch: "extra-condensed" }); c.fillText(String(e.n).padStart(2, "0"), x0, y);
-            setFont(c, `700 ${w * .028}px "Noto Sans KR"`, { spacing: (-w * .0008).toFixed(1) + "px" }); c.fillText(e.name, x0 + w * .1, y);
-            c.fillStyle = "#8a857c"; c.textAlign = "right";
-            setFont(c, `500 ${w * .02}px "Inter Tight", "Noto Sans KR"`); c.fillText(e.date, x1, y);
-            c.textAlign = "left"; y += w * .094;
-          });
-        },
-        verso: (c, w, h) => { paperBase(c, w, h, 7); gutter(c, w, h, "right"); } },
+          c.fillStyle = "#2a2724"; c.textAlign = "center";
+          setFont(c, `400 ${w * .2}px "Pinyon Script"`); c.fillText("Welcome", w / 2, h * .5);
+        }, verso: plate(0, "right") },
+      { recto: plate(1, "left"), verso: plate(2, "right") },
+      { recto: plate(3, "left"), verso: plate(4, "right") },
+      { recto: plate(5, "left"), verso: plate(6, "right") },
+      { recto: (c, w, h) => { blank(0)(c, w, h); gutter(c, w, h, "left"); },   // 마지막 장: 넘기면 빈 양면 = 연표가 될 자리
+        verso: (c, w, h) => { blank(1)(c, w, h); gutter(c, w, h, "right"); } },
     ];
     await breathe();
     const blockTop = tex(makeCanvas(pw, ph, (c, w, h) => { paperBase(c, w, h, 8); gutter(c, w, h, "left"); }));
@@ -813,7 +788,7 @@ body.returning .continue { display: inline-flex; }
       const g = new THREE.Group(); g.add(front, backM);
       [front, backM].forEach(m => { m.castShadow = true; m.receiveShadow = true; });
       root.add(g);
-      pageObjs.push({ g, geo, last: -1, zR: ZTOP + .0016 - i * .0004, zL: ZTOP + .0045 + i * .0012 });
+      pageObjs.push({ g, geo, last: -1, zR: ZTOP + .0024 - i * .0004, zL: ZTOP + .0045 + i * .0012 });
     }
     function bendPage(o, t) {
       if (o.last === t) return; o.last = t;
@@ -880,7 +855,7 @@ body.returning .continue { display: inline-flex; }
   addEventListener("pointermove", e => { S.tx = e.clientX / innerWidth - .5; S.ty = e.clientY / innerHeight - .5; }, { passive: true });
 
   function resetState() {
-    Object.assign(S, { enter: 0, face: 0, cover: 0, pages: [0, 0, 0], zoom: 0, flat: 0 });
+    Object.assign(S, { enter: 0, face: 0, cover: 0, pages: [0, 0, 0, 0, 0], zoom: 0, flat: 0 });
   }
   function revealSpread(quick) {
     const items = [...spread.querySelectorAll("[data-r], .era")];
@@ -943,16 +918,19 @@ body.returning .continue { display: inline-flex; }
       // 1) 책이 스르륵 펴진다
       .to(S, { face: 1, duration: 1.6, ease: "power2.inOut" }, 1.5)
       .to(S, { cover: 1, duration: 1.7, ease: "power2.inOut" }, 1.65)
-      .to(S.pages, { 0: 1, duration: 1.25, ease: "power2.inOut" }, 2.6)
-      .to(S.pages, { 1: 1, duration: 1.25, ease: "power2.inOut" }, 2.85)
-      .to(S.pages, { 2: 1, duration: 1.25, ease: "power2.inOut" }, 3.1)
-      // 2) 다 펴진 뒤 카메라가 들어가 화면을 채운다
-      .to(S, { zoom: 1, duration: 1.55, ease: "power3.inOut" }, 4.0)
-      .to(ghost, { scale: 1.16, opacity: 0, filter: "blur(8px)", duration: 1.0, ease: "power2.in" }, 3.9)
-      .to(chrome, { opacity: 0, duration: .5 }, 3.9)
-      .to(S, { flat: 1, duration: .45, ease: "power1.inOut" }, 4.6)
+      // 표지 안쪽 첫 면 "Welcome"이 잠깐 머문 뒤, 첫 장이 넘어가고 도판들이 드르륵 넘어간다
+      .to(S.pages, { 0: 1, duration: 1.1, ease: "power2.inOut" }, 3.75)
+      .to(S.pages, { 1: 1, duration: .75, ease: "power2.inOut" }, 4.55)
+      .to(S.pages, { 2: 1, duration: .75, ease: "power2.inOut" }, 4.75)
+      .to(S.pages, { 3: 1, duration: .75, ease: "power2.inOut" }, 4.95)
+      .to(S.pages, { 4: 1, duration: .8, ease: "power2.inOut" }, 5.15)
+      // 2) 빈 양면이 열리면 카메라가 들어가 화면을 채운다
+      .to(S, { zoom: 1, duration: 1.55, ease: "power3.inOut" }, 5.75)
+      .to(ghost, { scale: 1.16, opacity: 0, filter: "blur(8px)", duration: 1.0, ease: "power2.in" }, 5.6)
+      .to(chrome, { opacity: 0, duration: .5 }, 5.6)
+      .to(S, { flat: 1, duration: .45, ease: "power1.inOut" }, 6.35)
       // 3) 확대가 끝나기 전에 연표 내용이 겹쳐 떠오른다
-      .call(() => endIntro(false), null, 5.1);
+      .call(() => endIntro(false), null, 6.85);
     intro.classList.add("live");   // 시작 상태(가린 제목, 투명한 책)가 적용된 뒤에 보이게 한다
     if (window.__pauseIntro) { tl.pause(); stopTicker(); }   // 화면 확인용
   }
@@ -1053,7 +1031,7 @@ body.returning .continue { display: inline-flex; }
 
   /* ═════════ 시작 ═════════ */
   const fontsReady = Promise.all([
-    "400 40px 'Black Han Sans'", "900 40px Archivo", "600 40px Cinzel", "600 40px 'Inter Tight'", "700 40px 'Noto Sans KR'", "500 40px 'Noto Sans KR'",
+    "400 40px 'Black Han Sans'", "900 40px Archivo", "600 40px Cinzel", "600 40px 'Inter Tight'", "700 40px 'Noto Sans KR'", "500 40px 'Noto Sans KR'", "400 40px 'Pinyon Script'",
   ].map(f => document.fonts ? document.fonts.load(f, "서양미술사ABC").catch(() => {}) : null));
   layoutGhost();
   if (!hasGsap) { intro.hidden = true; return; }
