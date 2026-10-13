@@ -49,7 +49,7 @@ button { font: inherit; color: inherit; }
 #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .ghost { position: absolute; inset: 0; pointer-events: none; user-select: none; color: var(--ghost); transform-origin: 50% 50%; }
 .ghost .line { position: absolute; left: 50%; top: 50%; white-space: nowrap; padding-inline: .04em; clip-path: inset(-.06em -100vw); }  /* 세로로만 가린다: 가로로 흘러가도 잘리지 않게 */
-.ghost .line > span { display: block; }
+.ghost .line > span, .ghost .m { display: block; }
 /* 윗줄: 아래쪽이 책에 가린다 */
 .ghost .ko {
   font-family: var(--f-display); font-stretch: 62.5%; font-weight: 900; text-transform: uppercase;
@@ -250,8 +250,8 @@ body.returning .continue { display: inline-flex; }
 <!-- 인트로: 벽, 회색 제목, WebGL 책 -->
 <div id="intro" aria-hidden="true">
   <div class="ghost" id="ghost">
-    <div class="line ko"><span>Walk in</span></div>
-    <div class="line en"><span>Stay curious</span></div>
+    <div class="line ko"><span><span class="m"><span class="m">Walk in</span></span></span></div>
+    <div class="line en"><span><span class="m"><span class="m">Stay curious</span></span></span></div>
   </div>
   <canvas id="gl"></canvas>
   <div class="chrome" id="chrome">
@@ -896,15 +896,19 @@ body.returning .continue { display: inline-flex; }
     startTicker();
     tl = gsap.timeline();
     // 벽의 글자: 책이 먼저 들어온 뒤, 윗줄은 화면 밖 왼쪽→오른쪽, 아랫줄은 화면 밖 오른쪽→왼쪽.
-    // 세 구간(들어오기·머물기·빠지기)마다 가속과 감속을 다르게 준다.
-    const ko = ghost.querySelector(".ko > span"), en = ghost.querySelector(".en > span");
+    // 위치 = 들어오기(감속) + 흐름(일정한 속도) + 빠지기(가속)의 합이라 멈추는 순간 없이 계속 움직이고,
+    // 마지막 빈 양면이 열릴 때 가속해서 각자 반대편 화면 밖으로 빠진다.
+    // 겹친 세 요소에 각각 x를 줘서 세 움직임을 더한다(콜백 없이 탐색해도 정확하다)
+    const [ka, kb, kc] = [ghost.querySelector(".ko > span"), ...ghost.querySelectorAll(".ko .m")];
+    const [ea, eb, ec] = [ghost.querySelector(".en > span"), ...ghost.querySelectorAll(".en .m")];
+    const EXIT = 3.8;   // words 타임라인 기준: 마지막 장이 넘어가 빈 양면이 열리는 때
     const words = gsap.timeline();
-    words.fromTo(ko, { x: "-100vw" }, { x: "-13vw", duration: 1.15, ease: "expo.out" }, 0)        // 빠르게 들어와 급히 멈춘다
-      .to(ko, { x: "-3vw", duration: 2.15, ease: "sine.inOut" })                                  // 느리게 흐른다
-      .to(ko, { x: "34vw", duration: 1.1, ease: "power3.in" })                                    // 점점 빨라지며 빠진다
-      .fromTo(en, { x: "100vw" }, { x: "17vw", duration: 1.5, ease: "power4.out" }, .3)          // 조금 늦게, 더 길게 감속
-      .to(en, { x: "5vw", duration: 1.55, ease: "power1.inOut" })
-      .to(en, { x: "-34vw", duration: 1.1, ease: "power2.in" });
+    words.fromTo(ka, { x: "-88vw" }, { x: "0vw", duration: 1.2, ease: "expo.out" }, 0)
+      .fromTo(kb, { x: "-14vw" }, { x: "14vw", duration: EXIT, ease: "none" }, 0)
+      .fromTo(kc, { x: "0vw" }, { x: "110vw", duration: .75, ease: "power3.in" }, EXIT)
+      .fromTo(ea, { x: "88vw" }, { x: "0vw", duration: 1.5, ease: "power4.out" }, .3)
+      .fromTo(eb, { x: "16vw" }, { x: "-14vw", duration: EXIT, ease: "none" }, 0)
+      .fromTo(ec, { x: "0vw" }, { x: "-110vw", duration: .75, ease: "power3.in" }, EXIT + .05);
     tl.fromTo(glCanvas, { opacity: 0 }, { opacity: 1, duration: .9, ease: "power1.out" }, .25)
       .to(S, { enter: 1, duration: 1.6, ease: "expo.out" }, .25)
       .add(words, 1.05)
@@ -921,7 +925,6 @@ body.returning .continue { display: inline-flex; }
       .to(S.pages, { 4: 1, duration: .9, ease: "power2.inOut" }, 4.45)
       // 2) 빈 양면이 열리면 카메라가 들어가 화면을 채운다
       .to(S, { zoom: 1, duration: 1.55, ease: "power3.inOut" }, 5.2)
-      .to(ghost, { scale: 1.16, opacity: 0, filter: "blur(8px)", duration: 1.0, ease: "power2.in" }, 5.1)
       .to(chrome, { opacity: 0, duration: .5 }, 5.0)
       .to(S, { flat: 1, duration: .45, ease: "power1.inOut" }, 5.8)
       // 3) 확대가 끝나기 전에 연표 내용이 겹쳐 떠오른다
