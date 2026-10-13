@@ -59,13 +59,8 @@ button { font: inherit; color: inherit; }
 /* 아랫줄: 책 아랫단이 위쪽을 살짝 덮는다 */
 .ghost .en {
   font-family: var(--f-display); font-stretch: 62.5%; font-weight: 900; text-transform: uppercase;
-  font-size: clamp(42px, 8vw, 130px); line-height: 1; letter-spacing: -.004em;
+  font-size: clamp(50px, 10.4vw, 168px); line-height: 1; letter-spacing: -.004em;
   transform: translate(-50%, calc(var(--bh, 50vh) / 2 - .3em));
-}
-.ghost .by {
-  font-size: 10px; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: #b4afa5;
-  transform: translate(-50%, calc(var(--bh, 50vh) / 2 + clamp(42px, 8vw, 130px) * .74 + 16px));
-  padding-left: .32em;
 }
 .chrome {
   position: absolute; top: 0; left: 0; right: 0; z-index: 2;
@@ -255,9 +250,8 @@ body.returning .continue { display: inline-flex; }
 <!-- 인트로: 벽, 회색 제목, WebGL 책 -->
 <div id="intro" aria-hidden="true">
   <div class="ghost" id="ghost">
-    <div class="line ko"><span>Learn to see</span></div>
-    <div class="line en"><span>30,000 years. One walk.</span></div>
-    <div class="line by"><span>A guided walk through art history</span></div>
+    <div class="line ko"><span>Walk in</span></div>
+    <div class="line en"><span>Stay curious</span></div>
   </div>
   <canvas id="gl"></canvas>
   <div class="chrome" id="chrome">
@@ -326,11 +320,12 @@ body.returning .continue { display: inline-flex; }
     <li>조토, 「그리스도를 애도함」, 1305년경. 파도바 스크로베니 예배당. 퍼블릭 도메인</li>
     <li>얀 반 에이크, 「아르놀피니 부부의 초상」, 1434년. 런던 내셔널 갤러리. 퍼블릭 도메인</li>
     <li>카라바조, 「의심하는 도마」, 1602–03년. 포츠담 상수시 궁전. 퍼블릭 도메인</li>
+    <li>요하네스 베르메르, 「물주전자를 든 젊은 여인」, 1662년경. 메트로폴리탄 미술관 오픈 액세스. 퍼블릭 도메인</li>
     <li>자크루이 다비드, 「호라티우스 형제의 맹세」, 1784년. 루브르 박물관. 퍼블릭 도메인</li>
     <li>클로드 모네, 「인상, 해돋이」, 1872년. 마르모탕 모네 미술관. 퍼블릭 도메인</li>
     <li>바실리 칸딘스키, 「구성 VII」, 1913년. 트레티야코프 미술관. 퍼블릭 도메인</li>
   </ol>
-  <p>이미지는 모두 위키미디어 커먼즈에서 가져와 세부를 잘랐어요.</p>
+  <p>베르메르는 메트로폴리탄 미술관, 나머지는 위키미디어 커먼즈에서 가져왔어요.</p>
   <form method="dialog"><button class="pill" style="padding:9px 16px">닫기</button></form>
 </dialog>
 
@@ -563,7 +558,7 @@ body.returning .continue { display: inline-flex; }
   const FOV = 28, TANH = Math.tan(FOV / 2 * D2R);
   const isMobile = () => innerWidth <= 760;
   const lerp = (a, b, t) => a + (b - a) * t;
-  const S = { enter: 0, face: 0, cover: 0, pages: [0, 0, 0, 0, 0], zoom: 0, flat: 0, px: 0, py: 0, tx: 0, ty: 0 };
+  const S = { enter: 0, face: 0, cover: 0, pages: [0, 0, 0, 0], zoom: 0, flat: 0, px: 0, py: 0, tx: 0, ty: 0 };
   let G = null;
 
   const startDist = () => {
@@ -715,6 +710,7 @@ body.returning .continue { display: inline-flex; }
       ["img/era3-full.jpg", "Giotto, The Lamentation, c. 1305"],
       ["img/era4-full.jpg", "Jan van Eyck, The Arnolfini Portrait, 1434"],
       ["img/era5-full.jpg", "Caravaggio, The Incredulity of Saint Thomas, 1602"],
+      ["img/plate-vermeer.jpg", "Johannes Vermeer, Young Woman with a Water Pitcher, c. 1662"],
       ["img/era6-full.jpg", "Jacques-Louis David, Oath of the Horatii, 1784"],
       ["img/era7-full.jpg", "Claude Monet, Impression, Sunrise, 1872"],
       ["img/era8-full.jpg", "Wassily Kandinsky, Composition VII, 1913"],
@@ -735,7 +731,6 @@ body.returning .continue { display: inline-flex; }
         c.fillText(cap, w / 2, iy + ih + w * .055);
       } else { c.fillStyle = "#e5e0d6"; c.fillRect(bx, by, bw, bh); }
     };
-    const blank = k => (c, w, h) => { paperBase(c, w, h, 20 + k); };
     const pages = [
       { recto: (c, w, h) => {   // 표지를 열면 보이는 첫 면
           paperBase(c, w, h, 2); gutter(c, w, h, "left");
@@ -745,11 +740,9 @@ body.returning .continue { display: inline-flex; }
       { recto: plate(1, "left"), verso: plate(2, "right") },
       { recto: plate(3, "left"), verso: plate(4, "right") },
       { recto: plate(5, "left"), verso: plate(6, "right") },
-      { recto: (c, w, h) => { blank(0)(c, w, h); gutter(c, w, h, "left"); },   // 마지막 장: 넘기면 빈 양면 = 연표가 될 자리
-        verso: (c, w, h) => { blank(1)(c, w, h); gutter(c, w, h, "right"); } },
     ];
     await breathe();
-    const blockTop = tex(makeCanvas(pw, ph, (c, w, h) => { paperBase(c, w, h, 8); gutter(c, w, h, "left"); }));
+    const blockTop = tex(makeCanvas(pw, ph, plate(7, "left")));   // 마지막 양면의 오른쪽: 빈 종이 대신 도판
     const edge = (vertical) => tex(makeCanvas(vertical ? 512 : 64, vertical ? 64 : 512, (c, w, h) => {
       c.fillStyle = "#efece5"; c.fillRect(0, 0, w, h);
       const n = vertical ? w : h;
@@ -855,7 +848,7 @@ body.returning .continue { display: inline-flex; }
   addEventListener("pointermove", e => { S.tx = e.clientX / innerWidth - .5; S.ty = e.clientY / innerHeight - .5; }, { passive: true });
 
   function resetState() {
-    Object.assign(S, { enter: 0, face: 0, cover: 0, pages: [0, 0, 0, 0, 0], zoom: 0, flat: 0 });
+    Object.assign(S, { enter: 0, face: 0, cover: 0, pages: [0, 0, 0, 0], zoom: 0, flat: 0 });
   }
   function revealSpread(quick) {
     const items = [...spread.querySelectorAll("[data-r], .era")];
@@ -900,37 +893,35 @@ body.returning .continue { display: inline-flex; }
     }
     startTicker();
     tl = gsap.timeline();
-    // 벽의 제목이 흘러간다: 국문은 왼→오(빠르게 출발, 느린 중간, 끝에서 가속),
-    // 영문은 오→왼(느린 출발, 빠른 중간, 길게 감속). 서로 엇갈리며 가려진 글자가 드러난다.
+    // 벽의 글자: 책이 먼저 들어온 뒤, 윗줄은 화면 밖 왼쪽→오른쪽, 아랫줄은 화면 밖 오른쪽→왼쪽.
+    // 세 구간(들어오기·머물기·빠지기)마다 가속과 감속을 다르게 준다.
     const ko = ghost.querySelector(".ko > span"), en = ghost.querySelector(".en > span");
-    const drift = gsap.timeline();
-    drift.fromTo(ko, { x: "-16vw" }, { x: "-5vw", duration: 1.1, ease: "power3.out" }, 0)
-      .to(ko, { x: "0vw", duration: 2.1, ease: "sine.inOut" })
-      .to(ko, { x: "11vw", duration: 2.0, ease: "power2.in" })
-      .fromTo(en, { x: "18vw" }, { x: "13vw", duration: 1.3, ease: "sine.in" }, .15)
-      .to(en, { x: "-2vw", duration: 1.05, ease: "power2.inOut" })
-      .to(en, { x: "-11vw", duration: 2.8, ease: "expo.out" });
-    tl.add(drift, 0)
-      .from(lines, { yPercent: 112, duration: 1.25, ease: "expo.out", stagger: .09 }, 0)
-      .from(chrome, { opacity: 0, duration: .8 }, .3)
-      .fromTo(glCanvas, { opacity: 0 }, { opacity: 1, duration: .9, ease: "power1.out" }, .25)
+    const words = gsap.timeline();
+    words.fromTo(ko, { x: "-100vw" }, { x: "-13vw", duration: 1.15, ease: "expo.out" }, 0)        // 빠르게 들어와 급히 멈춘다
+      .to(ko, { x: "-3vw", duration: 2.15, ease: "sine.inOut" })                                  // 느리게 흐른다
+      .to(ko, { x: "34vw", duration: 1.1, ease: "power3.in" })                                    // 점점 빨라지며 빠진다
+      .fromTo(en, { x: "100vw" }, { x: "17vw", duration: 1.5, ease: "power4.out" }, .3)          // 조금 늦게, 더 길게 감속
+      .to(en, { x: "5vw", duration: 1.55, ease: "power1.inOut" })
+      .to(en, { x: "-34vw", duration: 1.1, ease: "power2.in" });
+    tl.fromTo(glCanvas, { opacity: 0 }, { opacity: 1, duration: .9, ease: "power1.out" }, .25)
       .to(S, { enter: 1, duration: 1.6, ease: "expo.out" }, .25)
+      .add(words, 1.05)
+      .from(chrome, { opacity: 0, duration: .8 }, 1.2)
       // 1) 책이 스르륵 펴진다
       .to(S, { face: 1, duration: 1.6, ease: "power2.inOut" }, 1.5)
       .to(S, { cover: 1, duration: 1.7, ease: "power2.inOut" }, 1.65)
-      // 표지 안쪽 첫 면 "Welcome"이 잠깐 머문 뒤, 첫 장이 넘어가고 도판들이 드르륵 넘어간다
-      .to(S.pages, { 0: 1, duration: 1.1, ease: "power2.inOut" }, 3.75)
-      .to(S.pages, { 1: 1, duration: .75, ease: "power2.inOut" }, 4.55)
-      .to(S.pages, { 2: 1, duration: .75, ease: "power2.inOut" }, 4.75)
-      .to(S.pages, { 3: 1, duration: .75, ease: "power2.inOut" }, 4.95)
-      .to(S.pages, { 4: 1, duration: .8, ease: "power2.inOut" }, 5.15)
-      // 2) 빈 양면이 열리면 카메라가 들어가 화면을 채운다
-      .to(S, { zoom: 1, duration: 1.55, ease: "power3.inOut" }, 5.75)
-      .to(ghost, { scale: 1.16, opacity: 0, filter: "blur(8px)", duration: 1.0, ease: "power2.in" }, 5.6)
-      .to(chrome, { opacity: 0, duration: .5 }, 5.6)
-      .to(S, { flat: 1, duration: .45, ease: "power1.inOut" }, 6.35)
+      // "Welcome" 면은 머물지 않고 이어서 넘어가고, 도판들이 드르륵 넘어간다
+      .to(S.pages, { 0: 1, duration: 1.05, ease: "power2.inOut" }, 2.85)
+      .to(S.pages, { 1: 1, duration: .75, ease: "power2.inOut" }, 3.55)
+      .to(S.pages, { 2: 1, duration: .75, ease: "power2.inOut" }, 3.75)
+      .to(S.pages, { 3: 1, duration: .8, ease: "power2.inOut" }, 3.95)
+      // 2) 마지막 양면(모네 | 칸딘스키)이 열리면 카메라가 들어가 화면을 채운다
+      .to(S, { zoom: 1, duration: 1.55, ease: "power3.inOut" }, 4.55)
+      .to(ghost, { scale: 1.16, opacity: 0, filter: "blur(8px)", duration: 1.0, ease: "power2.in" }, 4.55)
+      .to(chrome, { opacity: 0, duration: .5 }, 4.45)
+      .to(S, { flat: 1, duration: .45, ease: "power1.inOut" }, 5.15)
       // 3) 확대가 끝나기 전에 연표 내용이 겹쳐 떠오른다
-      .call(() => endIntro(false), null, 6.85);
+      .call(() => endIntro(false), null, 5.65);
     intro.classList.add("live");   // 시작 상태(가린 제목, 투명한 책)가 적용된 뒤에 보이게 한다
     if (window.__pauseIntro) { tl.pause(); stopTicker(); }   // 화면 확인용
   }
