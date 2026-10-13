@@ -79,10 +79,8 @@ button { font: inherit; color: inherit; }
 
 /* ───────── 2. 펼친 양면 = 사이트 ───────── */
 #spread {
-  min-height: 100%;
-  background: var(--paper);
-  display: grid; grid-template-columns: 1fr 1fr;
-  position: relative;
+  position: relative; min-height: 100%; height: 100vh; min-height: 560px;
+  background: var(--paper); overflow: hidden;
 }
 #spread::before {           /* 책등: WebGL 종이의 그늘과 같은 그라데이션 */
   content: ""; position: absolute; top: 0; bottom: 0; left: 50%;
@@ -91,97 +89,71 @@ button { font: inherit; color: inherit; }
     rgba(70,60,45,0) 0%, rgba(70,60,45,.035) 30%, rgba(70,60,45,.075) 42%, rgba(70,60,45,.15) 50%,
     rgba(70,60,45,.075) 58%, rgba(70,60,45,.035) 70%, rgba(70,60,45,0) 100%);
 }
-.page {
-  display: grid; grid-template-rows: auto 1fr auto; gap: 28px;
-  padding-block: clamp(22px, 4vh, 40px) clamp(20px, 3.5vh, 34px);
-  padding-inline: clamp(20px, 4.4vw, 76px);
-  min-width: 0;
+.folio { position: absolute; bottom: clamp(20px, 3.5vh, 34px); font-size: 12px; font-weight: 600; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.folio.l { left: clamp(20px, 4.4vw, 76px); }
+.folio.r { right: clamp(20px, 4.4vw, 76px); }
+/* 인용구: 오른쪽 면 위 오른쪽 */
+.quote {
+  position: absolute; right: 6%; top: 8%; max-width: min(15em, 38%); margin: 0; text-align: right;
+  font-family: var(--f-body); font-weight: 700; font-size: clamp(22px, 2.2vw, 36px); line-height: 1.22; letter-spacing: -.035em; text-wrap: balance;
 }
-.page.left { padding-right: clamp(40px, 4.5vw, 80px); }
-.page.right { padding-left: clamp(40px, 4.5vw, 80px); }
-.runhead {
-  display: flex; justify-content: space-between; align-items: center; gap: 12px;
-  font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
-}
-.runhead .mark { display: inline-flex; align-items: center; gap: 10px; }
-.runhead svg { width: 22px; height: 22px; color: var(--ink); }
-.runhead .soft { color: var(--ink-soft); }
-.folio { font-size: 12px; font-weight: 600; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-.page.right .folio { text-align: right; }
+.quote .q { color: var(--ink-soft); }
 
-.page-body { display: grid; grid-template-rows: minmax(200px, auto) auto; align-content: start; gap: 34px; min-width: 0; padding-top: clamp(12px, 6vh, 80px); }
-.page-note { display: grid; gap: 16px; align-content: end; justify-items: start; }
-.statement {
-  margin: 0; font-family: var(--f-body); font-weight: 700;
-  font-size: clamp(24px, 2.35vw, 38px); line-height: 1.2; letter-spacing: -.035em;
-  text-wrap: balance; max-width: 17em;
-}
-.statement .q { color: var(--ink-soft); }
-.page-note a { font-size: 13px; font-weight: 600; text-underline-offset: 4px; }
-.page-note a:hover { text-decoration-thickness: 2px; }
-
-/* 연표: 연필 선 하나가 정거장(시대)을 꿰고 지나간다. 선은 #trail(SVG)이 그리고, 정거장은 목록 DOM이다 */
-:root { --graphite: #57534b; --stagger: 54px; }
-.eras {
-  list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start;
-}
-.era { position: relative; min-width: 0; padding-right: 14px; }
-.era:nth-child(even) { margin-top: var(--stagger); }   /* 높낮이를 번갈아 두어 선이 지그재그로 흐른다 */
-.era-btn { all: unset; cursor: pointer; display: grid; width: 100%; }
+/* 연표: 매끈한 연필 선 하나가 위 왼쪽에서 아래 오른쪽으로. 정거장 위치는 JS가 선 위에서 잡는다 */
+:root { --graphite: #3d3a35; --sk: clamp(84px, 14.5vh, 136px); }
+.eras { list-style: none; margin: 0; padding: 0; position: absolute; inset: 0; pointer-events: none; }
+.era { position: absolute; width: var(--sk); pointer-events: auto; }
+.era-btn { all: unset; cursor: pointer; display: grid; gap: 10px; width: 100%; transition: transform .25s ease; }
 .era-btn:focus-visible { outline: 1.5px dashed var(--graphite); outline-offset: 8px; border-radius: 4px; }
-.sketch { display: block; width: min(136px, 100%); aspect-ratio: 1; color: var(--graphite); }
-.sketch svg { display: block; width: 100%; height: 100%; overflow: visible; }
-.sketch path, .fly path { fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
-.sketch .ghost { opacity: .32; }
-.era.inked .sketch { color: var(--ink); }
-.era.inked .sketch g[filter] { filter: none; }
-.knot-slot { position: relative; display: block; height: 62px; }
-.knot { position: absolute; left: min(68px, 50%); top: 50%; width: 1px; height: 1px; }   /* 선이 지나가는 점: JS가 위치를 읽는다 */
-.era-name { display: block; font-weight: 700; font-size: clamp(15px, 1.2vw, 18px); line-height: 1.3; letter-spacing: -.025em; text-wrap: balance; }
+.sketch { position: relative; display: block; width: var(--sk); height: var(--sk); }
+.sketch img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: 50% 100%;
+  opacity: .78; transition: opacity .25s ease;
+  -webkit-mask-image: linear-gradient(110deg, #000 calc(var(--reveal, 1) * 140% - 40%), transparent calc(var(--reveal, 1) * 140%));
+          mask-image: linear-gradient(110deg, #000 calc(var(--reveal, 1) * 140% - 40%), transparent calc(var(--reveal, 1) * 140%));
+}
+.era.below .sketch img { object-position: 50% 0; }
+.era-btn:hover, .era-btn:focus-visible { transform: translateY(-3px); }
+.era-btn:hover .sketch img, .era-btn:focus-visible .sketch img, .era.inked .sketch img { opacity: 1; }
+.era-name { display: block; font-weight: 700; font-size: clamp(14px, 1.15vw, 17px); line-height: 1.3; letter-spacing: -.025em; text-wrap: balance; }
 .era-date { display: block; font-size: 12px; font-weight: 500; color: var(--ink-soft); font-variant-numeric: tabular-nums; margin-top: 2px; }
-.era-line { display: block; font-size: 13.5px; font-weight: 500; line-height: 1.45; letter-spacing: -.012em; margin-top: 10px; text-wrap: pretty; }
-.rooms { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .55s var(--ease); }
-.era.open .rooms { grid-template-rows: 1fr; }
-.rooms > ol { overflow: hidden; list-style: none; margin: 0; padding: 0; display: grid; }
-.era.open .rooms > ol { padding-top: 12px; }
+.era-line { display: block; font-size: 13px; font-weight: 500; line-height: 1.42; letter-spacing: -.012em; margin-top: 6px; text-wrap: pretty; }
+/* 방 목록: 선화 자리에서 바뀐다(선과 부딪히지 않게) */
+.rooms {
+  position: absolute; left: 0; width: var(--sk); top: 0; height: var(--sk);
+  display: grid; align-content: center; opacity: 0; visibility: hidden; transition: opacity .3s ease, visibility 0s .3s;
+}
+.era.open .rooms { opacity: 1; visibility: visible; transition: opacity .3s ease; }
+.era.open .sketch img { opacity: .1; }
+.rooms > ol { list-style: none; margin: 0; padding: 0; display: grid; }
 .rooms a {
-  display: block; padding: 7px 0; font-size: 13.5px; font-weight: 600; line-height: 1.35; letter-spacing: -.015em;
+  display: block; padding: 6px 0; font-size: 13px; font-weight: 600; line-height: 1.3; letter-spacing: -.015em;
   text-decoration: none; border-top: 1px solid var(--hair);
 }
+.rooms li:first-child a { border-top: 0; }
 .rooms a:hover { text-decoration: underline; text-underline-offset: 3px; }
-.rooms .room-sub { display: block; font-size: 12px; font-weight: 500; color: var(--ink-soft); }
+.rooms .room-sub { display: block; font-size: 11.5px; font-weight: 500; color: var(--ink-soft); }
 
 /* 선 */
-#trail { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 1; }
+#trail { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
 #trail path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-#trail .seg { transition: opacity .3s ease; }
-#trail .main { stroke: var(--graphite); stroke-width: 1.3; opacity: .9; transition: stroke-width .3s ease, stroke .3s ease; }
-#trail .ghost { stroke: var(--graphite); stroke-width: 1; opacity: .3; }
-#trail .aux { stroke: var(--graphite); stroke-width: .9; opacity: .55; }
-#trail .dots { stroke: var(--graphite); stroke-width: 2.2; stroke-dasharray: .01 5.5; }
-#trail .dash { stroke-dasharray: 7 5; }
-#trail .ink { stroke: var(--ink); stroke-width: 1.7; opacity: 0; }
-#trail .knots path { stroke: var(--graphite); stroke-width: 1.2; fill: var(--paper); }
+#trail .line { stroke: var(--graphite); stroke-width: 1.4; opacity: .85; }
+#trail .line2 { stroke: var(--graphite); stroke-width: 1; opacity: .25; }
+#trail .ink { stroke: var(--ink); stroke-width: 1.8; }
+#trail .dot { fill: var(--paper); stroke: var(--graphite); stroke-width: 1.3; transform-box: fill-box; transform-origin: center; transition: r .25s ease; }
+#trail .dot.hot { r: 4.5; }
+#trail .dot.done { fill: var(--ink); stroke: var(--ink); }
 #trail .tip { fill: var(--graphite); }
-#trail.dim .seg:not(.hot) { opacity: .28; }
-#trail .seg.hot .main { stroke: var(--ink); stroke-width: 2; }
-#trail .seg.inked .main { stroke: var(--ink); stroke-width: 1.6; }
-#trail .seg.inked .ghost { opacity: 0; }
 @keyframes breathe { 50% { transform: scale(1.35); opacity: .7; } }
 #trail .tip.idle { transform-box: fill-box; transform-origin: center; animation: breathe 6s ease-in-out infinite; }
-.hint {
-  margin: 0; font-family: "Nanum Pen Script", cursive; font-size: clamp(26px, 2.3vw, 36px); line-height: 1.1;
-  color: var(--graphite); transform: rotate(-2.5deg); transform-origin: left center;
-}
 
-/* 다시 온 사람: 다 읽은 시대는 연필 위에 펜으로 덧그린다(JS가 .inked를 붙인다) */
+/* 다시 온 사람 */
 .ribbon {
-  display: none; position: absolute; top: -22px; left: 14px; width: 16px; height: 92px; z-index: 2;
+  display: none; position: absolute; top: -26px; left: 10px; width: 14px; height: 78px; z-index: 2;
   background: var(--ink); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);
 }
 body.returning .era.current .ribbon { display: block; }
-.continue { display: none; }
+.continue { display: none; position: absolute; left: clamp(20px, 4.4vw, 76px); bottom: clamp(56px, 9vh, 90px); }
 body.returning .continue { display: inline-flex; }
 .continue b { font-weight: 700; }
 
@@ -205,8 +177,8 @@ body.returning .continue { display: inline-flex; }
 #room .pill .dot::before { border-color: var(--ink); transform: translateX(1px) rotate(-135deg); }
 .fly { position: fixed; z-index: 30; overflow: hidden; pointer-events: none; will-change: left, top, width, height; }
 .fly img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.fly.sketchy { background: var(--paper); color: var(--graphite); }
-.fly svg { position: absolute; inset: 8%; width: 84%; height: 84%; overflow: visible; }
+.fly.sketchy { overflow: visible; }
+.fly .sk { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; }
 .fly img.full { opacity: 0; }
 
 /* ───────── 시제품 설정 ───────── */
@@ -233,24 +205,24 @@ body.returning .continue { display: inline-flex; }
 
 /* ───────── 모바일: 한 면, 세로 연표 ───────── */
 @media (max-width: 760px) {
-  #spread { grid-template-columns: 1fr; }
+  #spread { height: auto; min-height: 100%; padding: 28px 20px 56px; overflow: visible; }
   #spread::before { display: none; }
-  .page { padding-inline: 20px; gap: 22px; }
-  .page.left { padding-right: 20px; padding-bottom: 0; }
-  .page.right { padding-left: 20px; padding-top: 0; }
-  .page.left .folio, .page.right .runhead { display: none; }
-  .page-body { grid-template-rows: auto auto; padding-top: 8px; }
-  .eras { grid-template-columns: 1fr; }
-  .era { padding-right: 0; padding-left: 56px; padding-bottom: 26px; }
-  .era:nth-child(even) { margin-top: 0; }
-  .era-btn { position: relative; grid-template-columns: 84px 1fr; column-gap: 16px; align-items: start; }
-  .sketch { width: 84px; }
-  .knot-slot { position: absolute; left: -30px; top: 42px; width: 0; height: 0; }
-  .knot { left: 0; top: 0; }
-  .right-head .hint { display: none; }
-  .ribbon { top: -14px; left: auto; right: 0; height: 70px; }
+  .folio { display: none; }
+  .quote { position: static; max-width: none; text-align: right; font-size: 24px; margin: 8px 0 36px auto; width: fit-content; max-width: 15em; }
+  :root { --sk: 84px; }
+  .eras { position: static; display: grid; gap: 30px; padding-left: 40px; }
+  .era { position: static; width: auto; }
+  .era-btn { grid-template-columns: var(--sk) 1fr; column-gap: 16px; align-items: start; }
+  .era.below .sketch img { object-position: 50% 50%; }
+  .sketch img { object-position: 50% 50%; }
+  .rooms { position: static; width: auto; height: auto; display: grid; grid-template-rows: 0fr; opacity: 1; visibility: visible; transition: grid-template-rows .45s var(--ease); margin-left: calc(var(--sk) + 16px); }
+  .rooms > ol { overflow: hidden; }
+  .era.open .rooms { grid-template-rows: 1fr; }
+  .era.open .rooms > ol { padding-top: 8px; }
+  .era.open .sketch img { opacity: 1; }
+  .ribbon { top: -10px; left: auto; right: 0; height: 60px; }
   .continue { position: fixed; left: 16px; right: 16px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); justify-content: center; z-index: 15; }
-  body.returning #spread { padding-bottom: 80px; }
+  body.returning #spread { padding-bottom: 90px; }
   #room { grid-template-columns: 1fr; grid-template-rows: minmax(0, 58vh) auto; overflow: auto; }
   #proto { bottom: auto; top: calc(10px + env(safe-area-inset-top, 0px)); left: auto; right: 10px; }
   .chrome .pill { display: none; }
@@ -274,30 +246,12 @@ body.returning .continue { display: inline-flex; }
 
 <!-- 펼친 양면: 사이트의 첫 화면 -->
 <main id="spread">
-  <svg id="trail" aria-hidden="true"><defs id="trail-defs"></defs></svg>
-  <section class="page left" aria-label="왼쪽 면: 고대에서 르네상스까지">
-    <div class="runhead" data-r><span class="mark"><svg viewBox="0 0 200 200" class="em-mark" aria-hidden="true"></svg>서양 미술사</span><span class="soft">The Story of Art</span></div>
-    <div class="page-body">
-      <div class="page-note" data-r>
-        <span class="label">들어가며</span>
-        <p class="statement">미술이라는 것은 존재하지 않는다. <span class="q">다만 미술가들이 있을 뿐이다.</span></p>
-        <a href="#room-01" data-room="01" data-era="0">곰브리치의 첫 문장부터 읽기 →</a>
-      </div>
-      <nav aria-label="시대 1부터 4까지"><ol class="eras" id="eras-left"></ol></nav>
-    </div>
-    <div class="folio" data-r>4</div>
-  </section>
-  <section class="page right" aria-label="오른쪽 면: 바로크에서 현대까지">
-    <div class="runhead" data-r><span class="soft">E. H. Gombrich</span><span>기원전 3만 년부터 오늘까지</span></div>
-    <div class="page-body">
-      <div class="page-note right-head" data-r>
-        <p class="hint">선을 따라 걸어 보세요 →</p>
-        <button class="pill continue" id="continue" type="button"><span class="dot"></span>이어서 보기 <b>바로크 · 세 가지 빛</b></button>
-      </div>
-      <nav aria-label="시대 5부터 8까지"><ol class="eras" id="eras-right"></ol></nav>
-    </div>
-    <div class="folio" data-r>5</div>
-  </section>
+  <svg id="trail" aria-hidden="true"></svg>
+  <p class="quote" data-r>미술이라는 것은 존재하지 않는다. <span class="q">다만 미술가들이 있을 뿐이다.</span></p>
+  <nav aria-label="여덟 개의 시대"><ol class="eras" id="eras"></ol></nav>
+  <button class="pill continue" id="continue" type="button"><span class="dot"></span>이어서 보기 <b>바로크 · 세 가지 빛</b></button>
+  <div class="folio l" data-r aria-hidden="true">4</div>
+  <div class="folio r" data-r aria-hidden="true">5</div>
 </main>
 
 <!-- 방 -->
@@ -332,13 +286,14 @@ body.returning .continue { display: inline-flex; }
     <li>미론, 「원반 던지는 사람」 로마 시대 복제본. 로마 국립박물관 팔라초 마시모. 사진 Livioandronico2013, CC BY-SA 4.0</li>
     <li>조토, 「그리스도를 애도함」, 1305년경. 파도바 스크로베니 예배당. 퍼블릭 도메인</li>
     <li>얀 반 에이크, 「아르놀피니 부부의 초상」, 1434년. 런던 내셔널 갤러리. 퍼블릭 도메인</li>
+    <li>레오나르도 다 빈치, 「비트루비우스적 인간」, 1490년경. 베네치아 아카데미아 미술관. 퍼블릭 도메인(사진 Luc Viatour)</li>
     <li>카라바조, 「의심하는 도마」, 1602–03년. 포츠담 상수시 궁전. 퍼블릭 도메인</li>
     <li>요하네스 베르메르, 「물주전자를 든 젊은 여인」, 1662년경. 메트로폴리탄 미술관 오픈 액세스. 퍼블릭 도메인</li>
     <li>자크루이 다비드, 「호라티우스 형제의 맹세」, 1784년. 루브르 박물관. 퍼블릭 도메인</li>
     <li>클로드 모네, 「인상, 해돋이」, 1872년. 마르모탕 모네 미술관. 퍼블릭 도메인</li>
     <li>바실리 칸딘스키, 「구성 VII」, 1913년. 트레티야코프 미술관. 퍼블릭 도메인</li>
   </ol>
-  <p>베르메르는 메트로폴리탄 미술관, 나머지는 위키미디어 커먼즈에서 가져왔어요.</p>
+  <p>베르메르는 메트로폴리탄 미술관, 나머지는 위키미디어 커먼즈에서 가져왔어요. 연표의 연필 선화는 이 그림들에서 윤곽을 뽑아 만들었어요(원반 던지는 사람 선화는 원본 사진과 같은 CC BY-SA 4.0).</p>
   <form method="dialog"><button class="pill" style="padding:9px 16px">닫기</button></form>
 </dialog>
 
@@ -348,28 +303,28 @@ body.returning .continue { display: inline-flex; }
 (() => {
   const ERAS = [
     { n: 1, name: "원시와 고대 문명", date: "기원전 3만 – 기원전 1천 년", line: "못 그린 게 아니라, 다르게 그린 거예요",
-      img: "img/era1.jpg", full: "img/era1-full.jpg", work: "네바문의 정원",
+      img: "img/era1.jpg", full: "img/era1-full.jpg", sketch: "img/sketch-era1.png", crop: [0.24, 0.22, 0.62, 0.45], work: "네바문의 정원",
       rooms: [["02", "원시미술", "신비에 싸인 기원"], ["03", "이집트·메소포타미아·크레타", "영원을 위한 미술"]] },
     { n: 2, name: "그리스와 로마", date: "기원전 800 – 기원후 400년", line: "처음으로, 눈에 보이는 대로",
-      img: "img/era2.jpg", full: "img/era2-full.jpg", work: "원반 던지는 사람",
+      img: "img/era2.jpg", full: "img/era2-full.jpg", sketch: "img/sketch-era2.png", crop: [0.08, 0.04, 0.84, 0.8], work: "원반 던지는 사람",
       rooms: [["04", "그리스", "위대한 각성"], ["05", "로마", "세계의 정복자들"]] },
     { n: 3, name: "중세", date: "400 – 1400년", line: "글 모르는 사람에게 성경을 보여 주다",
-      img: "img/era3.jpg", full: "img/era3-full.jpg", work: "조토, 그리스도를 애도함",
+      img: "img/era3.jpg", full: "img/era3-full.jpg", sketch: "img/sketch-era3.png", crop: [0.04, 0.52, 0.52, 0.41], work: "조토, 그리스도를 애도함",
       rooms: [["06", "중세", "보는 대신 믿게 하는 미술"]] },
     { n: 4, name: "르네상스", date: "1400 – 1600년", line: "완벽해졌다. 그럼 이제 뭘 그리지?",
-      img: "img/era4.jpg", full: "img/era4-full.jpg", work: "반 에이크, 아르놀피니 부부의 초상",
+      img: "img/era4.jpg", full: "img/era4-vitruvian.jpg", sketch: "img/sketch-era4.png", crop: [0.0542, 0.0893, 0.8927, 0.6567], work: "레오나르도 다 빈치, 비트루비우스적 인간",
       rooms: [["07", "15세기 르네상스", "현실성의 정복"], ["08", "16세기 르네상스", "조화의 달성"], ["09", "매너리즘", "완성 뒤에 찾아온 위기"]] },
     { n: 5, name: "바로크와 로코코", date: "1600 – 1780년", line: "빛으로 마음을 흔들다",
-      img: "img/era5.jpg", full: "img/era5-full.jpg", work: "카라바조, 의심하는 도마",
+      img: "img/era5.jpg", full: "img/era5-full.jpg", sketch: "img/sketch-era5.png", crop: [0.08, 0.04, 0.62, 0.72], work: "카라바조, 의심하는 도마",
       rooms: [["10", "바로크", "빛과 극장, 그리고 자연의 거울"], ["11", "로코코와 이성의 시대", "귀족의 꿈에서 보통 사람의 일상으로"]] },
     { n: 6, name: "혁명과 낭만", date: "1780 – 1850년", line: "왕도 교회도 없이, 누구를 위해 그릴까",
-      img: "img/era6.jpg", full: "img/era6-full.jpg", work: "다비드, 호라티우스 형제의 맹세",
+      img: "img/era6.jpg", full: "img/era6-full.jpg", sketch: "img/sketch-era6.png", crop: [0.18, 0.25, 0.5, 0.7], work: "다비드, 호라티우스 형제의 맹세",
       rooms: [["12", "혁명기와 신고전주의", "전통의 단절"], ["13", "낭만주의", "시인의 자유를 얻은 화가들"]] },
     { n: 7, name: "눈의 혁명", date: "1850 – 1905년", line: "내 눈에 보이는 걸 믿어도 될까",
-      img: "img/era7.jpg", full: "img/era7-full.jpg", work: "모네, 인상, 해돋이",
+      img: "img/era7.jpg", full: "img/era7-full.jpg", sketch: "img/sketch-era7.png", crop: [0.1, 0.2, 0.8, 0.75], work: "모네, 인상, 해돋이",
       rooms: [["14", "사실주의", "천사 대신 돌 깨는 사람을"], ["15", "인상주의", "눈에 보이는 그대로"], ["16", "후기인상주의", "새로운 규범을 찾아서"]] },
     { n: 8, name: "20세기 이후", date: "1905년 – 오늘", line: "이것도 예술이라고?",
-      img: "img/era8.jpg", full: "img/era8-full.jpg", work: "칸딘스키, 구성 VII",
+      img: "img/era8.jpg", full: "img/era8-full.jpg", sketch: "img/sketch-era8.png", crop: [0.25, 0.15, 0.5, 0.7], work: "칸딘스키, 구성 VII",
       rooms: [["17", "20세기 전반", "실험적 미술"], ["18", "현대 미술", "끝이 없는 이야기"]] },
   ];
   const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -522,58 +477,15 @@ body.returning .continue { display: inline-flex; }
   const paintMarks = () => document.querySelectorAll(".em-mark").forEach(svg => { svg.innerHTML = emblemSVG(MARK).replace('stroke-width="1.6"', 'stroke-width="5"'); });
   paintMarks();
 
-  /* ═════════ 시대 선화: 140×140, 연필로 선만 긋는다 ═════════ */
-  const ring = (cx, cy, r) => `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0`;
-  const mx = pts => pts.map(([x, y]) => [140 - x, y]);
-  const SKETCH = [
-    // 1. 동굴벽화의 들소
-    ["M22 92C20 82 24 72 32 68C36 54 46 38 62 34C76 31 86 40 96 48C106 54 116 56 122 64C126 72 124 82 118 88", "M44 96C60 100 90 99 116 90",
-     "M22 92C26 100 34 104 42 100M30 98l-2 6M36 101l-1 6", "M33 66C27 60 29 52 37 50", "M46 98L42 120M58 100L60 122M104 93L100 118M114 89L118 114",
-     "M122 66C130 72 130 84 126 92", ring(33, 75, 1.3), "M50 46l-6 -4M56 40l-5 -6M64 36l-3 -7M72 35l-1 -7", "M14 125C50 122 90 127 128 123"],
-    // 2. 이오니아 기둥머리
-    (() => { const v = spiral(37, 55, 14, 1.5, -90, 1.7, -1, 90); return ["M24 34H116M24 40H116", "M37 41C60 45 80 45 103 41",
-      toD(v), toD(mx(v)), "M46 52C54 62 86 62 94 52", "M44 66H96", "M47 70V128M93 70V128", "M57 72V128M66 72V128M74 72V128M83 72V128"]; })(),
-    // 3. 고딕 창과 장미창
-    (() => { const sp = []; for (let k = 0; k < 8; k++) { const [a, b] = pol(70, 58, 5, k * 45), [c, d] = pol(70, 58, 16, k * 45); sp.push(`M${r2(a)} ${r2(b)}L${r2(c)} ${r2(d)}`); }
-      return ["M34 128V72C34 46 52 28 70 15C88 28 106 46 106 72V128", "M42 128V74C42 52 56 36 70 25C84 36 98 52 98 74V128",
-        ring(70, 58, 16), ring(70, 58, 5), sp.join(""), "M48 128V100C48 90 53 84 58 81C63 84 68 90 68 100V128", "M72 128V100C72 90 77 84 82 81C87 84 92 90 92 100V128", "M28 128H112"]; })(),
-    // 4. 원근법: 소실점으로 모이는 바닥 (자로 그은 선)
-    (() => { const out = ["M12 54H128", "M60 54V41C60 33 80 33 80 41V54"]; let d = "";
-      [10, 28, 49, 70, 91, 112, 130].forEach(x => { d += `M70 54L${x} 128`; }); out.push(d); d = "";
-      [62, 72, 86, 104, 128].forEach(y => { const w = 60 * (y - 54) / 74; d += `M${r2(70 - w)} ${y}H${r2(70 + w)}`; }); out.push(d); return out; })(),
-    // 5. 바로크: 어둠 속 촛불과 빛
-    (() => { let rays = ""; for (let k = 0; k < 9; k++) { const a = -170 + k * 20, [x1, y1] = pol(70, 68, 17, a), [x2, y2] = pol(70, 68, 28 + (k % 2) * 6, a); rays += `M${r2(x1)} ${r2(y1)}L${r2(x2)} ${r2(y2)}`; }
-      let hatch = ""; for (let k = 0; k < 7; k++) hatch += `M${96 + k * 5} 128l22 -22`; let hatch2 = ""; for (let k = 0; k < 6; k++) hatch2 += `M${8 + k * 5} 40l18 -18`;
-      return ["M70 56C63 66 63 75 70 78C77 75 77 66 70 56", "M70 78V84", "M62 128V84H78V128", "M48 128H92", rays, hatch, hatch2]; })(),
-    // 6. 메두사호의 뗏목
-    ["M24 104L112 97L118 106L30 113Z", "M64 101L56 28", "M57 34C78 38 92 50 95 56C85 70 73 84 63 92", "M56 30L28 102",
-     "M101 97L104 74M104 74l-7 -12M104 74l9 -14l6 2", ring(105, 56, 3.2), "M8 118C22 108 32 126 46 117C60 108 70 126 84 117C98 108 110 126 132 115",
-     "M12 130C30 121 44 136 60 127C76 119 90 135 130 124", "M8 96C14 74 34 70 40 84C34 80 26 82 24 92"],
-    // 7. 인상, 해돋이
-    [ring(86, 44, 9), "M10 64C40 61 70 66 130 62", "M20 64V40M26 64V46M31 64V53M110 62V32M116 62V41",
-     "M81 72h10M78 78h14M83 84h7M76 90h16M82 96h9M78 103h13M84 110h6", "M38 104C46 110 62 110 70 104", "M54 104V93M50 97L64 112",
-     "M96 92C100 95 108 95 112 92", "M14 80h12M20 90h16M100 116h18M22 120h20M46 84h8"],
-    // 8. 20세기: 어긋난 입방체와 원
-    ["M28 62H74V108H28Z", "M44 46H90V92H44Z", "M28 62L44 46M74 62L90 46M74 108L90 92M28 108L44 92", "M58 34L110 54L98 102L46 82Z",
-     ring(106, 32, 13), ring(106, 32, 5), "M16 124L124 84", "M20 26L40 18L34 38Z"],
-  ];
-  const sketchSVG = (i, ghost = true) => {
-    const ps = SKETCH[i].map(d => `<path d="${d}" pathLength="1"/>`).join("");
-    const f = i === 3 ? "" : ` filter="url(#pencil-${i})"`;   // 원근 격자만 자로 그은 선이라 떨림이 없다
-    return `<svg viewBox="0 0 140 140" aria-hidden="true"><g class="draw"${f}>${ps}</g>${ghost ? `<g class="ghost" transform="translate(.8 .6)"${f}>${SKETCH[i].map(d => `<path d="${d}"/>`).join("")}</g>` : ""}</svg>`;
-  };
-
   /* ═════════ 연표 DOM ═════════ */
-  const left = document.getElementById("eras-left");
-  const right = document.getElementById("eras-right");
+  const erasOl = document.getElementById("eras");
   ERAS.forEach((e, i) => {
     const li = document.createElement("li");
-    li.className = "era"; li.dataset.i = i;
+    li.className = "era" + (i >= 4 ? " below" : ""); li.dataset.i = i;
     li.innerHTML = `
       <span class="ribbon" aria-hidden="true"></span>
       <button class="era-btn" type="button" aria-expanded="false" aria-controls="rooms-${i}">
-        <span class="sketch">${sketchSVG(i)}</span>
-        <span class="knot-slot" aria-hidden="true"><span class="knot"></span></span>
+        <span class="sketch" aria-hidden="true"><img src="${e.sketch}" alt="" decoding="async"></span>
         <span class="era-text">
           <span class="era-name">${e.name}</span>
           <span class="era-date">${e.date}</span>
@@ -583,216 +495,134 @@ body.returning .continue { display: inline-flex; }
       <div class="rooms" id="rooms-${i}"><ol>
         ${e.rooms.map(r => `<li><a href="#room-${r[0]}" data-room="${r[0]}" data-era="${i}">${r[1]}<span class="room-sub">${r[2]}</span></a></li>`).join("")}
       </ol></div>`;
-    (i < 4 ? left : right).appendChild(li);
+    erasOl.appendChild(li);
   });
   const eraEls = [...document.querySelectorAll(".era")];
-  const hoverable = matchMedia("(hover: hover)").matches;
   const setOpen = (el, open) => { el.classList.toggle("open", open); el.querySelector(".era-btn").setAttribute("aria-expanded", String(open)); };
   eraEls.forEach(el => {
     el.querySelector(".era-btn").addEventListener("click", () => {
       const open = !el.classList.contains("open");
       eraEls.forEach(o => o !== el && setOpen(o, false)); setOpen(el, open);
     });
-    if (hoverable) {
-      el.addEventListener("mouseenter", () => eraEls.forEach(o => setOpen(o, o === el)));
-      el.addEventListener("mouseleave", () => setOpen(el, false));
-    }
   });
+  // 밖을 누르면 열린 방 목록을 닫는다
+  document.addEventListener("pointerdown", ev => { if (!ev.target.closest(".era")) eraEls.forEach(o => setOpen(o, false)); });
 
-  /* ═════════ 연필 선: 정거장을 꿰고 지나가며 시대마다 긋는 법이 바뀐다 ═════════ */
+  /* ═════════ 연필 선: 위 왼쪽에서 아래 오른쪽으로 내려가는 매끈한 선 하나 ═════════ */
   const NS = "http://www.w3.org/2000/svg";
   const trail = document.getElementById("trail");
   const book = document.getElementById("spread");
-  const defs = document.getElementById("trail-defs");
   const mk = (tag, attrs, parent) => { const n = document.createElementNS(NS, tag); for (const k in attrs) n.setAttribute(k, attrs[k]); if (parent) parent.appendChild(n); return n; };
-  // 선화의 연필 떨림. hover 중인 정거장 하나만 씨앗을 바꿔 가며 "보일링"한다(손그림 애니메이션 기법)
-  const turb = SKETCH.map((_, i) => {
-    const f = mk("filter", { id: `pencil-${i}`, x: "-10%", y: "-10%", width: "120%", height: "120%" }, defs);
-    const t = mk("feTurbulence", { type: "fractalNoise", baseFrequency: ".03", numOctaves: 2, seed: i * 7 + 1, result: "n" }, f);
-    mk("feDisplacementMap", { in: "SourceGraphic", in2: "n", scale: 1.6, xChannelSelector: "R", yChannelSelector: "G" }, f);
-    return t;
-  });
-  // 구간: -1은 화면 밖에서 들어오는 선, i는 정거장 i에서 다음 정거장까지(그 시대의 필치)
-  const SEGS = [-1, 0, 1, 2, 3, 4, 5, 6, 7].map(i => {
-    const g = mk("g", { class: "seg", "data-i": i }, trail);
-    const m = mk("mask", { id: `tm${i + 1}`, maskUnits: "userSpaceOnUse", x: "-10%", y: "-10%", width: "120%", height: "120%" }, defs);
-    const mp = mk("path", { fill: "none", stroke: "#fff", "stroke-width": 16, "stroke-linecap": "round", "stroke-linejoin": "round", pathLength: 1, "stroke-dasharray": "1 1", "stroke-dashoffset": 0 }, m);
-    const inner = mk("g", { mask: `url(#tm${i + 1})` }, g);
-    const dash = i === 6 ? " dash" : "";
-    const main = mk("path", { class: "main" + dash }, inner);
-    const gh = mk("path", { class: "ghost" + dash, transform: "translate(.8 .7)" }, inner);
-    const aux = mk("path", { class: "aux" }, inner);
-    const dots = i === 6 ? mk("path", { class: "dots" }, inner) : null;
-    const ink = mk("path", { class: "ink", pathLength: 1 }, inner);
-    const rays = i === 3 ? mk("path", { class: "aux" }, g) : null;   // 소실점 보조선: 마스크 밖에서 따로 나타난다
-    return { i, g, mp, main, gh, aux, dots, ink, rays, len: 1 };
-  });
-  const knotsG = mk("g", { class: "knots" }, trail);
-  const knotEls = ERAS.map(() => mk("path", {}, knotsG));
+  const line2 = mk("path", { class: "line2", transform: "translate(.8 .7)", pathLength: 1 }, trail);   // 연필을 한 번 더 그은 듯한 옅은 선
+  const line = mk("path", { class: "line", pathLength: 1 }, trail);
+  const ink = mk("path", { class: "ink", pathLength: 1, "stroke-dasharray": "0 1" }, trail);
+  const dots = ERAS.map(() => mk("circle", { class: "dot", r: 3 }, trail));
   const tip = mk("circle", { class: "tip idle", r: 2.7, cx: -20, cy: -20 }, trail);
-
-  // 정해진 떨림(씨앗이 같으면 늘 같은 모양): 좌표에 미리 구워 넣어 필터 비용이 없다
-  const wob = (seed, amp, per) => {
-    const ph = [1, 2, 3].map(k => Math.abs(Math.sin(seed * 12.9898 * k) * 43758.5453) % 1 * 6.283);
-    return (t, L) => amp * (Math.sin(t * L / per + ph[0]) * .5 + Math.sin(t * L / (per * .43) + ph[1]) * .3 + Math.sin(t * L / (per * .19) + ph[2]) * .2);
-  };
-  const W = [wob(1, 1.8, 9), wob(2, 2.4, 6), wob(3, 1.3, 11), wob(4, 1, 5)];
-  const ends = t => Math.min(1, t * 6, (1 - t) * 6);
-  // [선 방향 이동, 수직 이동(+는 진행 방향의 왼쪽: 가로면 위, 세로면 오른쪽)]
-  function shape(i, t, L, k, s) {
-    const bulge = a => s * a * k * Math.sin(Math.PI * t);
-    switch (i) {
-      case -1: return [0, bulge(8) + W[0](t, L) * ends(t)];                                   // 목탄
-      case 0: { let v = bulge(10) + W[1](t, L) * ends(t);                                      // 거친 목탄, 뒤쪽은 이집트식 계단
-        if (t > .56 && t < .94) v += (Math.floor((t - .56) / .0475) % 2 ? 4 : -4) * k; return [0, v]; }
-      case 1: return [0, s * 13 * k * Math.sin(2 * Math.PI * t)];                                // 그리스: 굵기 일정한 S자
-      case 2: { let v = bulge(4); const a = .34, b = .66;                                        // 중세: 첨두아치
-        if (t > a && t < b) v += 32 * k * Math.sqrt(1 - Math.abs(2 * (t - a) / (b - a) - 1)); return [0, v]; }
-      case 3: return [0, -10 * k * (1 - Math.abs(2 * t - 1))];                                   // 르네상스: 자로 그은 두 직선, 꺾이는 곳이 소실점
-      case 4: { const a = .28, b = .72; let du = 0, v = bulge(6);                                // 바로크: 소용돌이 고리
-        if (t > a && t < b) { const q = (t - a) / (b - a) * 2 * Math.PI, R = Math.max(16 * k, L * (b - a) / (2 * Math.PI) * 1.2); du = -R * Math.sin(q); v += R * (1 - Math.cos(q)); }
-        return [du, v]; }
-      case 5: { if (t < .42) return [0, 0]; const q = (t - .42) / .58; return [0, 9 * k * q * Math.sin(q * 3 * 2 * Math.PI)]; }   // 반듯한 선이 파도로 부서진다
-      case 6: return [0, bulge(10) + W[2](t, L) * ends(t)];                                      // 인상주의: 붓질 대시, 끝은 점묘
-      case 7: { if (t < .5) { const q = t / .5 * 5; return [0, 11 * k * (4 * Math.abs((q + .25) % 1 - .5) - 1)]; }   // 입체파 지그재그
-        return [0, 9 * k * W[3](t, L) * Math.min(1, (t - .5) * 10)]; }                          // 자유로운 낙서, 끝은 열려 있다
-    }
-    return [0, 0];
-  }
-  function segPoints(i, A, B, k, s) {
-    const dx = B[0] - A[0], dy = B[1] - A[1], L = Math.hypot(dx, dy) || 1, ux = dx / L, uy = dy / L, nx = uy, ny = -ux;
-    const N = Math.max(30, Math.round(L / 2)), out = [];
-    for (let j = 0; j <= N; j++) {
-      const t = j / N, [du, dv] = shape(i, t, L, k, s), u = L * t + du;
-      out.push([A[0] + ux * u + nx * dv, A[1] + uy * u + ny * dv]);
-    }
-    return out;
-  }
-  const toPath = pts => pts.length ? "M" + pts.map(p => p[0].toFixed(1) + " " + p[1].toFixed(1)).join("L") : "";
-  // 폴리라인 위 거리 d의 점과 방향
-  function along(pts, d) {
-    for (let j = 1; j < pts.length; j++) {
-      const [x0, y0] = pts[j - 1], [x1, y1] = pts[j], l = Math.hypot(x1 - x0, y1 - y0);
-      if (d <= l || j === pts.length - 1) { const f = Math.min(1, d / (l || 1)); return [x0 + (x1 - x0) * f, y0 + (y1 - y0) * f, (x1 - x0) / (l || 1), (y1 - y0) / (l || 1)]; }
-      d -= l;
-    }
-    return [0, 0, 1, 0];
-  }
+  // 1440×900 기준 경로: 늘 내려가기만 하는 굽이 네 번(기울기만 바뀐다)
+  const BASE = [[30, 240], [360, 330], [720, 450], [1080, 570], [1410, 660]];
+  const STATION_X = [.08, .18, .28, .38, .62, .72, .82, .92];
+  let frac = [];   // 정거장까지의 선 길이 비율
   const mobileTrail = () => innerWidth <= 760;
+  function cubicPath(P) {
+    let d = `M${P[0][0].toFixed(1)} ${P[0][1].toFixed(1)}`;
+    for (let i = 1; i < P.length; i++) {
+      const [x0, y0] = P[i - 1], [x1, y1] = P[i], dx = x1 - x0;
+      d += `C${(x0 + .45 * dx).toFixed(1)} ${y0.toFixed(1)} ${(x1 - .45 * dx).toFixed(1)} ${y1.toFixed(1)} ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+    }
+    return d;
+  }
+  function vertPath(P) {   // 모바일: 세로로 내려가는 매끈한 선
+    let d = `M${P[0][0].toFixed(1)} ${P[0][1].toFixed(1)}`;
+    for (let i = 1; i < P.length; i++) {
+      const [x0, y0] = P[i - 1], [x1, y1] = P[i], dy = y1 - y0;
+      d += `C${x0.toFixed(1)} ${(y0 + .45 * dy).toFixed(1)} ${x1.toFixed(1)} ${(y1 - .45 * dy).toFixed(1)} ${x1.toFixed(1)} ${y1.toFixed(1)}`;
+    }
+    return d;
+  }
   function layoutTrail() {
-    const mob = mobileTrail();
-    // 양면의 정거장 높이를 맞춘다: 위쪽 글 상자를 같은 높이로
-    const notes = [...book.querySelectorAll(".page-note")];
-    notes.forEach(n => { n.style.minHeight = ""; });
-    if (!mob) { const h = Math.max(...notes.map(n => n.offsetHeight)); notes.forEach(n => { n.style.minHeight = h + "px"; }); }
-    const br = book.getBoundingClientRect();
-    const P = eraEls.map(el => { const r = el.querySelector(".knot").getBoundingClientRect(); return [r.left - br.left, r.top - br.top]; });
-    const k = mob ? .5 : 1;
-    const start = mob ? [P[0][0], P[0][1] - 64] : [-6, P[0][1] + 20];
-    const end = mob ? [P[7][0], P[7][1] + 120] : [P[7][0] + (br.width - P[7][0]) * .6, P[7][1] - 26];
-    const nodes = [start, ...P, end];
-    SEGS.forEach((sg, n) => {
-      const pts = segPoints(sg.i, nodes[n], nodes[n + 1], k, n % 2 ? 1 : -1);
-      const cut = sg.dots ? Math.round(pts.length * .74) : pts.length;
-      const d = toPath(pts);
-      sg.mp.setAttribute("d", d); sg.ink.setAttribute("d", d);
-      sg.main.setAttribute("d", toPath(pts.slice(0, cut))); sg.gh.setAttribute("d", toPath(pts.slice(0, cut)));
-      if (sg.dots) sg.dots.setAttribute("d", toPath(pts.slice(cut - 1)));
-      let aux = "";
-      if (sg.i >= 0) {   // 번호 대신: 그 시대의 장(방) 수만큼 짧은 눈금
-        ERAS[sg.i].rooms.forEach((_, j) => {
-          const [x, y, tx, ty] = along(pts, 15 + j * 7), h = 4;
-          aux += `M${(x - ty * h).toFixed(1)} ${(y + tx * h).toFixed(1)}L${(x + ty * h).toFixed(1)} ${(y - tx * h).toFixed(1)}`;
-        });
-      }
-      let rays = "";
-      if (sg.i === 3) {   // 소실점으로 모이는 보조선
-        const [vx, vy] = pts[Math.round(pts.length / 2)], [ax, ay] = nodes[n], [bx, by] = nodes[n + 1];
-        const L = Math.hypot(bx - ax, by - ay), ux = (bx - ax) / L, uy = (by - ay) / L;
-        [-160, -138, -112, -68, -42, -20].forEach(deg => {
-          const c = Math.cos(deg * D2R), s = Math.sin(deg * D2R), len = (mob ? 22 : 40) * (1 - Math.abs(Math.abs(deg) - 90) / 160);
-          rays += `M${vx.toFixed(1)} ${vy.toFixed(1)}l${((ux * c + uy * s) * len).toFixed(1)} ${((uy * c - ux * s) * len).toFixed(1)}`;
-        });
-      }
-      sg.aux.setAttribute("d", aux);
-      if (sg.rays) sg.rays.setAttribute("d", rays);
-      sg.pts = pts; sg.len = sg.mp.getTotalLength() || 1;
+    const W = book.clientWidth, H = book.clientHeight, mob = mobileTrail();
+    let d, pts;
+    if (mob) {
+      const br = book.getBoundingClientRect();
+      pts = eraEls.map(el => { const r = el.querySelector(".sketch").getBoundingClientRect(); return [0, r.top - br.top + r.height / 2]; });
+      const xs = [22, 30, 18, 28, 20, 30, 18, 26];
+      pts.forEach((p, i) => { p[0] = xs[i]; });
+      d = vertPath([[24, pts[0][1] - 70], ...pts, [24, pts[7][1] + 90]]);
+    } else {
+      eraEls.forEach(el => { el.style.left = el.style.top = ""; });
+      // 화면이 낮으면 선의 위아래 끝을 당겨 정거장 상자가 들어갈 자리를 만든다
+      const hb = Math.max(...eraEls.map(el => el.offsetHeight));
+      const top = Math.max(240 / 900 * H, hb + 30), bot = Math.max(top + 60, Math.min(660 / 900 * H, H - hb - 40));
+      d = cubicPath(BASE.map(([x, y]) => [x / 1440 * W, top + (y - 240) / 420 * (bot - top)]));
+    }
+    [line, line2, ink].forEach(p => p.setAttribute("d", d));
+    const L = line.getTotalLength();
+    // 선 위의 점을 x(데스크톱) 또는 y(모바일)로 찾는다
+    const N = 600, samp = [];
+    for (let k = 0; k <= N; k++) { const q = line.getPointAtLength(L * k / N); samp.push([q.x, q.y, L * k / N]); }
+    const at = (v, axis) => samp.reduce((b, s) => Math.abs(s[axis] - v) < Math.abs(b[axis] - v) ? s : b);
+    frac = [];
+    eraEls.forEach((el, i) => {
+      const s = mob ? at(pts[i][1], 1) : at(STATION_X[i] * W, 0);
+      frac.push(s[2] / L);
+      dots[i].setAttribute("cx", s[0].toFixed(1)); dots[i].setAttribute("cy", s[1].toFixed(1));
+      if (mob) return;
+      // 왼쪽 면: 점의 위 오른쪽, 오른쪽 면: 점의 아래 왼쪽(선이 계속 내려가므로 두 곳은 늘 비어 있다)
+      const w = el.offsetWidth, h = el.offsetHeight;
+      if (i < 4) { el.style.left = (s[0] + 8) + "px"; el.style.top = Math.max(10, s[1] - 14 - h) + "px"; }
+      else { el.style.left = (s[0] - 8 - w) + "px"; el.style.top = (s[1] + 16) + "px"; }
     });
-    // 매듭: 연필을 눌렀다 뗀 작은 고리
-    P.forEach(([x, y], i) => {
-      const pts = []; const a0 = i * 1.7;
-      for (let j = 0; j <= 26; j++) { const a = a0 + j / 26 * Math.PI * 2.25, r = 4.2 + j * .03; pts.push([x + r * Math.cos(a), y + r * Math.sin(a)]); }
-      knotEls[i].setAttribute("d", toPath(pts));
-    });
-    if (!revealTl) placeTip();
+    applyInk();
   }
-  function tipAt(sg, p) { const q = sg.mp.getPointAtLength(sg.len * p); tip.setAttribute("cx", q.x.toFixed(1)); tip.setAttribute("cy", q.y.toFixed(1)); }
-  // 연필 끝: 다시 온 사람이면 읽던 곳, 아니면 선의 끝(끝이 없는 이야기)
-  function placeTip() {
-    const cur = document.body.classList.contains("returning") ? eraEls.findIndex(el => el.classList.contains("current")) : -1;
-    if (cur >= 0) tipAt(SEGS[cur + 1], .4); else tipAt(SEGS[SEGS.length - 1], 1);
-  }
-  // 다시 온 사람: 다 읽은 시대는 연필 위에 펜으로 덧그리고, 읽는 중인 시대는 읽은 만큼만
+  const pointAt = f => line.getPointAtLength(line.getTotalLength() * f);
+  function moveTip(f) { const q = pointAt(f); tip.setAttribute("cx", q.x.toFixed(1)); tip.setAttribute("cy", q.y.toFixed(1)); }
+  // 다시 온 사람: 읽은 곳까지 선을 잉크로 덧그리고, 다 읽은 정거장 점을 채운다
+  let inkTo = 0;
   function applyInk() {
     const ret = document.body.classList.contains("returning");
-    SEGS[0].g.classList.toggle("inked", ret && eraEls[0].classList.contains("done"));
-    eraEls.forEach((el, i) => {
-      const done = ret && el.classList.contains("done"), cur = ret && el.classList.contains("current");
-      el.classList.toggle("inked", done);
-      SEGS[i + 1].g.classList.toggle("inked", done);
-      SEGS[i + 1].ink.style.opacity = cur ? 1 : 0;
-      SEGS[i + 1].ink.setAttribute("stroke-dasharray", ".4 1");
-    });
-    if (!revealTl) placeTip();
+    const cur = ret ? eraEls.findIndex(el => el.classList.contains("current")) : -1;
+    eraEls.forEach((el, i) => { const done = ret && el.classList.contains("done"); el.classList.toggle("inked", done); dots[i].classList.toggle("done", done); });
+    inkTo = cur >= 0 && frac.length ? frac[cur] + .4 * ((frac[cur + 1] ?? 1) - frac[cur]) : 0;
+    ink.setAttribute("stroke-dasharray", `${inkTo} 1`);
+    if (!revealTl) moveTip(inkTo || 1);
   }
   let revealTl = null;
   function drawTrail(dur) {
     if (revealTl) { revealTl.kill(); revealTl = null; }
-    const parts = eraEls.map(el => ({ paths: el.querySelectorAll(".sketch .draw path"), ghost: el.querySelector(".sketch .ghost"), text: el.querySelector(".era-text") }));
+    const parts = eraEls.map(el => ({ img: el.querySelector(".sketch img"), text: el.querySelector(".era-text") }));
+    const lines = [line, line2];
     if (!dur || !hasGsap) {
-      SEGS.forEach(s => s.mp.setAttribute("stroke-dashoffset", 0));
-      if (hasGsap) gsap.set([...knotEls, SEGS[4].rays, ...parts.flatMap(p => [...p.paths, p.ghost, p.text])], { clearProps: "all" });
-      parts.forEach(p => p.paths.forEach(n => n.removeAttribute("stroke-dashoffset")));
-      tip.classList.add("idle"); placeTip(); return;
+      lines.forEach(p => p.setAttribute("stroke-dashoffset", 0));
+      dots.forEach(d => d.setAttribute("r", 3)); parts.forEach(p => p.img.style.removeProperty("--reveal"));
+      if (hasGsap) gsap.set([ink, ...parts.flatMap(p => [p.img, p.text])], { clearProps: "all" });
+      tip.classList.add("idle"); moveTip(inkTo || 1); return;
     }
-    const total = SEGS.reduce((a, s) => a + s.len * (s.i === 3 ? 1.35 : 1), 0);   // 책등을 넘는 구간은 조금 천천히
+    const ease = gsap.parseEase("power2.inOut");
+    const timeOf = f => { let a = 0, b = 1; for (let k = 0; k < 30; k++) { const m = (a + b) / 2; if (ease(m) < f) a = m; else b = m; } return a * dur; };
     tip.classList.remove("idle");
-    revealTl = gsap.timeline({ onComplete: () => { revealTl = null; tip.classList.add("idle"); placeTip(); } });
-    let t = .1;
-    SEGS.forEach((sg, n) => {
-      const d = dur * sg.len * (sg.i === 3 ? 1.35 : 1) / total;
-      revealTl.fromTo(sg.mp, { attr: { "stroke-dashoffset": 1 } }, {
-        attr: { "stroke-dashoffset": 0 }, duration: d, ease: n === 0 ? "power1.in" : n === SEGS.length - 1 ? "power2.out" : "none",
-        onUpdate() { tipAt(sg, this.progress()); } }, t);
-      if (sg.rays) revealTl.fromTo(sg.rays, { opacity: 0 }, { opacity: .55, duration: .5, clearProps: "opacity" }, t + d * .45);
-      if (n > 0) {   // 연필 끝이 정거장에 닿으면 그 시대의 선화를 스케치한다
-        const p = parts[n - 1];
-        revealTl.fromTo(knotEls[n - 1], { opacity: 0 }, { opacity: 1, duration: .2 }, t)
-          .fromTo(p.paths, { attr: { "stroke-dasharray": "1 1", "stroke-dashoffset": 1 } }, { attr: { "stroke-dashoffset": 0 }, duration: .55, ease: "power2.out", stagger: .045 }, t)
-          .fromTo(p.ghost, { opacity: 0 }, { opacity: .32, duration: .4, clearProps: "opacity" }, t + .35)
-          .fromTo(p.text, { y: 10, opacity: 0 }, { y: 0, opacity: 1, duration: .6, ease: "expo.out", clearProps: "all" }, t + .1);
-      }
-      t += d;
+    const p = { v: 0 };
+    lines.forEach(l => l.setAttribute("stroke-dasharray", "1 1"));
+    revealTl = gsap.timeline({ onComplete: () => { revealTl = null; tip.classList.add("idle"); moveTip(inkTo || 1); } });
+    revealTl.fromTo(p, { v: 0 }, { v: 1, duration: dur, ease: "power2.inOut", onUpdate() { lines.forEach(l => l.setAttribute("stroke-dashoffset", 1 - p.v)); moveTip(p.v); } }, .1)
+      .fromTo(ink, { opacity: 0 }, { opacity: 1, duration: .4, clearProps: "opacity" }, .1 + dur);
+    frac.forEach((f, i) => {   // 연필 끝이 정거장에 닿으면 점이 찍히고, 그 시대의 선화가 그려진다
+      const t = .1 + timeOf(f);
+      revealTl.fromTo(dots[i], { attr: { r: 0 } }, { attr: { r: 3 }, duration: .3, ease: "back.out(2)" }, t)
+        .fromTo(parts[i].img, { "--reveal": 0 }, { "--reveal": 1, duration: .8, ease: "power2.out" }, t)
+        .fromTo(parts[i].text, { y: i < 4 ? 8 : -8, opacity: 0 }, { y: 0, opacity: 1, duration: .5, ease: "expo.out", clearProps: "all" }, t + .15);
     });
   }
   // 그리는 중에 누르면 바로 완성
   book.addEventListener("pointerdown", () => { if (revealTl) revealTl.progress(1); });
   let rafLayout = 0;
-  if (window.ResizeObserver) new ResizeObserver(() => { cancelAnimationFrame(rafLayout); rafLayout = requestAnimationFrame(layoutTrail); }).observe(book);
-
-  // hover·focus: 그 시대 구간의 선이 진해지고 나머지는 물러난다
-  let boil = 0;
-  function setHot(i) {
-    trail.classList.toggle("dim", i >= 0);
-    SEGS.forEach(s => s.g.classList.toggle("hot", s.i === i));
-    clearInterval(boil); boil = 0;
-    turb.forEach((t, j) => t.setAttribute("seed", j * 7 + 1));
-    if (i >= 0 && i !== 3 && !reduce) { let n = 0; boil = setInterval(() => turb[i].setAttribute("seed", i * 7 + 1 + (++n % 3)), 125); }
-  }
+  const relayout = () => { cancelAnimationFrame(rafLayout); rafLayout = requestAnimationFrame(layoutTrail); };
+  if (window.ResizeObserver) new ResizeObserver(relayout).observe(book);
+  eraEls.forEach(el => el.querySelector(".sketch img").addEventListener("load", relayout));
+  // hover·focus: 그 정거장의 점이 커진다(선화는 CSS로 진해진다)
   eraEls.forEach((el, i) => {
-    if (hoverable) { el.addEventListener("mouseenter", () => setHot(i)); el.addEventListener("mouseleave", () => setHot(-1)); }
-    el.addEventListener("focusin", ev => { if (ev.target.matches(":focus-visible")) setHot(i); });   // 키보드 초점일 때만
-    el.addEventListener("focusout", ev => { if (!el.contains(ev.relatedTarget)) setHot(-1); });
+    const btn = el.querySelector(".era-btn");
+    ["mouseenter", "focus"].forEach(ev => btn.addEventListener(ev, () => dots[i].classList.add("hot")));
+    ["mouseleave", "blur"].forEach(ev => btn.addEventListener(ev, () => dots[i].classList.remove("hot")));
   });
 
   /* ═════════ WebGL 책 ═════════ */
@@ -1104,7 +934,7 @@ body.returning .continue { display: inline-flex; }
     layoutTrail(); applyInk();
     if (!hasGsap || reduce || quick) { drawTrail(0); if (hasGsap) gsap.set(spread.querySelectorAll("[data-r]"), { clearProps: "all" }); return; }
     gsap.fromTo(spread.querySelectorAll("[data-r]"), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: .75, ease: "expo.out", stagger: .035, clearProps: "all" });
-    drawTrail(document.body.classList.contains("returning") ? 1.2 : 2.6);
+    drawTrail(document.body.classList.contains("returning") ? .8 : 1.6);
     if (document.body.classList.contains("returning")) dropRibbon();
   }
   function endIntro(quick) {
@@ -1194,59 +1024,75 @@ body.returning .continue { display: inline-flex; }
     revealSpread(false);
   }
 
-  /* ═════════ 방 입장: 세부 도판이 날아가 방의 그림이 된다 ═════════ */
+  /* ═════════ 방 입장: 밑그림에서 완성작으로 ═════════
+     선화가 날아가 실제 그림의 같은 자리에 정확히 겹치고, 그 밑에서 그림이 떠오른다 */
   const room = document.getElementById("room");
   const roomImg = document.getElementById("room-img");
   const roomFig = document.getElementById("room-fig");
   let lastEra = -1, roomBusy = false;
-  // 밑그림에서 완성작으로: 선화가 커지며 날아가고, 그 밑에서 실제 그림이 떠오른다
-  function flyBox(i, full) {
+  const rectOf = el => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; };
+  // 정거장 상자 안에서 선화가 실제로 그려진 사각형(contain + 아래·위 맞춤)
+  function sketchRect(el) {
+    const img = el.querySelector(".sketch img"), b = rectOf(img.parentNode);
+    const k = Math.min(b.width / img.naturalWidth, b.height / img.naturalHeight), w = img.naturalWidth * k, h = img.naturalHeight * k;
+    const below = el.classList.contains("below") && !mobileTrail(), mid = mobileTrail();
+    return { left: b.left + (b.width - w) / 2, top: mid ? b.top + (b.height - h) / 2 : below ? b.top : b.top + b.height - h, width: w, height: h };
+  }
+  // 방의 그림(cover로 채움) 위에서 선화를 뜬 영역의 사각형
+  function cropRect(e) {
+    const f = rectOf(roomFig), nw = roomImg.naturalWidth, nh = roomImg.naturalHeight, k = Math.max(f.width / nw, f.height / nh);
+    const ox = f.left + (f.width - nw * k) / 2, oy = f.top + (f.height - nh * k) / 2, [cx, cy, cw, ch] = e.crop;
+    return { left: ox + cx * nw * k, top: oy + cy * nh * k, width: cw * nw * k, height: ch * nh * k };
+  }
+  function flyBox(e) {
     const f = document.createElement("div"); f.className = "fly sketchy";
-    f.innerHTML = sketchSVG(i, false) + `<img class="full" src="${full}" alt="">`;
+    f.innerHTML = `<img class="sk" src="${e.sketch}" alt="">`;
     document.body.appendChild(f); return f;
   }
-  const rectOf = el => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; };
-  function enterRoom(i, title) {
+  const ready = img => (img.decode ? img.decode() : Promise.resolve()).catch(() => {});
+  async function enterRoom(i, title) {
     if (roomBusy) return;
     const e = ERAS[i] || ERAS[0]; lastEra = i;
-    document.getElementById("room-era").textContent = i >= 0 ? `${String(e.n).padStart(2, "0")} · ${e.name}` : "들어가며";
+    document.getElementById("room-era").textContent = e.name;
     document.getElementById("room-title").textContent = title;
     roomImg.src = e.full; roomImg.alt = e.work;
-    room.hidden = false;
-    const plate = eraEls[i] && eraEls[i].querySelector(".sketch");
-    const caption = room.querySelectorAll(".caption > *");
-    if (!plate || reduce || !hasGsap) { document.getElementById("room-title").focus({ preventScroll: true }); return; }
+    const el = eraEls[i];
+    const focusTitle = () => document.getElementById("room-title").focus({ preventScroll: true });
+    if (!el || reduce || !hasGsap) { room.hidden = false; focusTitle(); return; }
     roomBusy = true;
-    const from = rectOf(plate), to = rectOf(roomFig);
-    const f = flyBox(i, e.full);
-    gsap.set(f, from); gsap.set(roomImg, { opacity: 0 });
-    gsap.timeline({ onComplete: () => { gsap.set(roomImg, { opacity: 1 }); f.remove(); roomBusy = false; document.getElementById("room-title").focus({ preventScroll: true }); } })
-      .fromTo(room, { opacity: 0 }, { opacity: 1, duration: .7, ease: "power2.inOut" }, 0)
-      .to(f, { ...to, duration: 1.05, ease: "expo.inOut" }, 0)
-      .to(f.querySelector(".full"), { opacity: 1, duration: .5, ease: "power1.inOut" }, .45)
-      .to(f.querySelector("svg"), { opacity: 0, duration: .4, ease: "power1.in" }, .55)
-      .fromTo(caption, { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: .9, ease: "expo.out", stagger: .07 }, .55);
+    const from = sketchRect(el);
+    gsap.set(room, { opacity: 0 }); gsap.set(roomImg, { opacity: 0 }); room.hidden = false;
+    await ready(roomImg);
+    const f = flyBox(e), sk = f.querySelector(".sk");
+    gsap.set(f, from);
+    gsap.timeline({ onComplete: () => { f.remove(); roomBusy = false; focusTitle(); } })
+      .to(room, { opacity: 1, duration: .7, ease: "power2.inOut" }, 0)
+      .to(f, { ...cropRect(e), duration: 1.05, ease: "expo.inOut" }, 0)
+      .fromTo(sk, { filter: "invert(0)" }, { filter: "invert(.88)", duration: .6, ease: "power1.inOut" }, .15)   // 어두운 방에서는 밝은 선
+      .to(roomImg, { opacity: 1, duration: .6, ease: "power1.inOut", clearProps: "opacity" }, 1.0)
+      .to(f, { opacity: 0, duration: .5, ease: "power1.in" }, 1.25)
+      .fromTo(room.querySelectorAll(".caption > *"), { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: .9, ease: "expo.out", stagger: .07 }, .6);
   }
   function leaveRoom() {
     if (roomBusy || room.hidden) return;
-    const plate = eraEls[lastEra] && eraEls[lastEra].querySelector(".sketch");
-    if (!plate || reduce || !hasGsap) { room.hidden = true; return; }
+    const el = eraEls[lastEra];
+    if (!el || reduce || !hasGsap) { room.hidden = true; return; }
     roomBusy = true;
-    const e = ERAS[lastEra];
-    const f = flyBox(lastEra, e.full);
-    gsap.set(f, rectOf(roomFig)); gsap.set(f.querySelector(".full"), { opacity: 1 }); gsap.set(f.querySelector("svg"), { opacity: 0 }); gsap.set(roomImg, { opacity: 0 });
-    gsap.timeline({ onComplete: () => { f.remove(); room.hidden = true; gsap.set([room, roomImg], { clearProps: "opacity" }); roomBusy = false; plate.closest(".era-btn").focus({ preventScroll: true }); } })
+    const e = ERAS[lastEra], f = flyBox(e), sk = f.querySelector(".sk");
+    gsap.set(f, { ...cropRect(e), opacity: 0 }); gsap.set(sk, { filter: "invert(.88)" });
+    gsap.timeline({ onComplete: () => { f.remove(); room.hidden = true; gsap.set([room, roomImg], { clearProps: "opacity" }); roomBusy = false; el.querySelector(".era-btn").focus({ preventScroll: true }); } })
       .to(room.querySelectorAll(".caption > *"), { y: -12, opacity: 0, duration: .35, ease: "power2.in", stagger: .03 }, 0)
-      .to(room, { opacity: 0, duration: .6, ease: "power2.inOut" }, .1)
-      .to(f, { ...rectOf(plate), duration: .95, ease: "expo.inOut" }, .05)
-      .to(f.querySelector(".full"), { opacity: 0, duration: .5 }, .25)
-      .to(f.querySelector("svg"), { opacity: 1, duration: .45 }, .35);
+      .to(f, { opacity: 1, duration: .35 }, 0)
+      .to(roomImg, { opacity: 0, duration: .45 }, .2)
+      .to(room, { opacity: 0, duration: .6, ease: "power2.inOut" }, .45)
+      .to(sk, { filter: "invert(0)", duration: .5 }, .55)
+      .to(f, { ...sketchRect(el), duration: .95, ease: "expo.inOut" }, .45);
   }
   document.addEventListener("click", ev => {
     const a = ev.target.closest("a[data-room]");
     if (!a) return;
     ev.preventDefault();
-    enterRoom(a.dataset.room === "01" ? -1 : Number(a.dataset.era), a.childNodes[0].textContent.trim().replace(" →", ""));
+    enterRoom(Number(a.dataset.era), a.childNodes[0].textContent.trim().replace(" →", ""));
   });
   document.getElementById("room-back").addEventListener("click", leaveRoom);
   addEventListener("keydown", ev => { if (ev.key === "Escape") leaveRoom(); });
