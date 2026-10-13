@@ -1,0 +1,363 @@
+<title>표지 엠블럼 시안</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@200;300;400&family=Cormorant+Garamond:ital,wght@0,400;1,300;1,400&family=Cormorant+SC:wght@500&family=IBM+Plex+Sans+KR:wght@400;500&display=swap">
+<style>
+/* Layout: 흰 벽 위의 흰 책. 회색 제목이 책 뒤로 지나가고, 표지에는 눌러 찍은(음각) 선 엠블럼 하나.
+   갤러리 벽처럼 밝은 단일 세계관이라 다크 테마를 두지 않는다. */
+:root {
+  color-scheme: light;
+  --wall: #f5f4f1;        /* 벽: 아주 옅은 따뜻한 흰색 */
+  --cover-hi: #ffffff;    /* 표지에서 빛 받는 쪽 */
+  --cover-lo: #e8e6e0;    /* 표지에서 그늘진 쪽 */
+  --ghost: #d3d0c8;       /* 배경 제목 회색 */
+  --deboss: #b4aea3;      /* 표지에 눌린 선 */
+  --ink: #2a2723;         /* 시안 도면, 본문 */
+  --ink-soft: #857f75;    /* 보조 글 */
+  --rule: #e2dfd8;        /* 구분선 */
+  --f-ko: "Noto Serif KR", "Nanum Myeongjo", serif;
+  --f-latin: "Cormorant Garamond", "EB Garamond", Garamond, serif;
+  --f-sc: "Cormorant SC", "Cormorant Garamond", Garamond, serif;
+  --f-ui: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  --ease: cubic-bezier(.22,.7,.18,1);
+}
+body {
+  background: var(--wall); color: var(--ink);
+  font-family: var(--f-ui); font-size: 15px; line-height: 1.65;
+  -webkit-font-smoothing: antialiased; word-break: keep-all;
+}
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 1.5px solid var(--ink); outline-offset: 3px; }
+
+/* ───────── 히어로: 랜딩 장면 미리보기 ───────── */
+.hero {
+  position: relative;
+  min-height: min(92vh, 860px);
+  display: grid; place-items: center;
+  overflow: hidden;
+  padding-inline: 16px;
+  --bh: clamp(280px, 50vh, 460px);
+}
+.tag {
+  position: absolute; top: 20px; left: 24px; z-index: 3;
+  font-size: 12px; letter-spacing: .08em; color: var(--ink-soft);
+}
+.ghost { position: absolute; inset: 0; pointer-events: none; user-select: none; color: var(--ghost); }
+.ghost span { position: absolute; left: 50%; top: 50%; white-space: nowrap; }
+/* 한글 제목: 아래쪽 40%가 책에 가린다 */
+.ghost .ko {
+  font-family: var(--f-ko); font-weight: 200;
+  font-size: clamp(64px, 15.5vw, 236px); line-height: 1; letter-spacing: .04em;
+  transform: translate(-50%, calc(var(--bh) / -2 - .62em));
+}
+/* 영문 제목: 책 아랫단이 글자 윗부분을 살짝 덮는다 */
+.ghost .en {
+  font-family: var(--f-latin); font-style: italic; font-weight: 300;
+  font-size: clamp(34px, 6.4vw, 96px); line-height: 1; letter-spacing: .01em;
+  transform: translate(-50%, calc(var(--bh) / 2 - .32em));
+}
+.ghost .by {
+  font-family: var(--f-sc); font-weight: 500;
+  font-size: 10.5px; letter-spacing: .48em; padding-left: .48em; color: #b9b5ac;
+  transform: translate(-50%, calc(var(--bh) / 2 + clamp(34px, 6.4vw, 96px) * .78 + 14px));
+}
+
+.stage { position: relative; z-index: 2; perspective: 1900px; }
+.book {
+  --h: var(--bh);
+  --w: calc(var(--h) * .69);
+  --t: calc(var(--h) * .07);
+  position: relative; width: var(--w); height: var(--h);
+  transform-style: preserve-3d;
+  transform: rotateY(-19deg) rotateX(3deg);
+  transition: transform 1.2s var(--ease);
+}
+.stage:hover .book { transform: rotateY(-15deg) rotateX(2deg) translateY(-4px); }
+
+/* 바닥·벽에 지는 그림자: 책 뒤에 평평하게 */
+.cast {
+  position: absolute; inset: 2% 0 0 0;
+  transform: translateZ(calc(var(--t) / -2 - 1px));
+  box-shadow:
+    26px 34px 60px -14px rgba(70, 62, 50, .22),
+    8px 12px 18px -6px rgba(70, 62, 50, .12);
+}
+/* 앞표지: 왼쪽 위에서 오는 빛 + 책등 쪽 접힘 홈 */
+.front {
+  position: absolute; inset: 0;
+  transform: translateZ(calc(var(--t) / 2));
+  border-radius: 1px 3px 3px 1px;
+  background:
+    linear-gradient(90deg,
+      rgba(0,0,0,.07) 0, rgba(0,0,0,0) 2.2%,
+      rgba(255,255,255,.95) 3%, rgba(0,0,0,.055) 4.4%, rgba(0,0,0,0) 7.5%),
+    radial-gradient(130% 95% at 18% 8%, var(--cover-hi) 0%, #f9f8f5 42%, var(--cover-lo) 100%);
+  box-shadow: inset 0 0 0 .5px rgba(60,50,40,.06), inset -1px 0 0 rgba(255,255,255,.8);
+  display: grid; place-items: center;
+}
+/* 앞마구리: 종이 단면 */
+.fore {
+  position: absolute; top: .6%; bottom: .6%;
+  left: calc((var(--w) - var(--t)) / 2); width: var(--t);
+  transform: rotateY(90deg) translateZ(calc(var(--w) / 2 - 2px));
+  background:
+    linear-gradient(90deg, rgba(80,70,55,.10), rgba(80,70,55,.02) 60%, rgba(80,70,55,.08)),
+    repeating-linear-gradient(90deg, #f4f2ed 0 1px, #e3e0d8 1px 2px);
+}
+.emblem { width: 50%; aspect-ratio: 1; overflow: visible; margin-top: -4%; }
+.emblem use { transition: opacity .45s ease; }
+.emblem .hi { color: #ffffff; transform: translate(.9px, 1.1px); stroke-width: 2.4; }
+.emblem .lo { color: var(--deboss); stroke-width: 1.5; }
+.emblem.swap use { opacity: 0; }
+
+/* 시안 고르기 */
+.picker {
+  position: absolute; bottom: 22px; left: 0; right: 0; z-index: 3;
+  display: flex; justify-content: center; flex-wrap: wrap; gap: 4px 6px;
+  padding-inline: 16px;
+}
+.picker button {
+  background: none; border: 0; cursor: pointer;
+  padding: 6px 10px; font-size: 13px; color: var(--ink-soft);
+  border-bottom: 1px solid transparent;
+}
+.picker button b { font-family: var(--f-sc); font-weight: 500; margin-right: 6px; letter-spacing: .05em; }
+.picker button[aria-pressed="true"] { color: var(--ink); border-bottom-color: var(--ink); }
+
+/* ───────── 시안 도면 ───────── */
+.sheet {
+  max-width: 1120px; margin: 0 auto;
+  padding: 72px 24px 96px;
+  border-top: 1px solid var(--rule);
+}
+.sheet h2 {
+  font-family: var(--f-ko); font-weight: 300; font-size: 26px; letter-spacing: .02em;
+  margin: 0 0 6px;
+}
+.sheet .lead { color: var(--ink-soft); margin: 0 0 48px; max-width: 60ch; }
+.grid {
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 48px 32px;
+}
+.plate { display: grid; gap: 14px; align-content: start; }
+.plate .art {
+  aspect-ratio: 1; max-width: 100%;
+  background: #fcfbf9;
+  border: 1px solid var(--rule);
+  display: grid; place-items: center;
+  cursor: pointer; padding: 0;
+  transition: border-color .3s ease;
+}
+.plate .art:hover, .plate .art[aria-pressed="true"] { border-color: var(--ink-soft); }
+.plate .art svg { width: 78%; height: 78%; color: var(--ink); stroke-width: 1.2; }
+.plate .no { font-family: var(--f-sc); font-weight: 500; font-size: 13px; letter-spacing: .2em; color: var(--ink-soft); }
+.plate h3 { margin: 0; font-family: var(--f-ko); font-weight: 400; font-size: 18px; }
+.plate h3 i { font-family: var(--f-latin); font-weight: 400; font-size: 17px; color: var(--ink-soft); margin-left: 6px; }
+.plate p { margin: 0; font-size: 14px; color: #5d5850; }
+
+@media (max-width: 900px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) {
+  .grid { grid-template-columns: minmax(0, 1fr); }
+  .hero { --bh: clamp(220px, 36vh, 300px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; }
+}
+</style>
+
+<!-- 엠블럼 원본: 스크립트가 채운다 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs id="defs"></defs></svg>
+
+<section class="hero" aria-label="랜딩 장면 미리보기">
+  <span class="tag">표지 엠블럼 시안 · 2026. 10. 13.</span>
+  <div class="ghost" aria-hidden="true">
+    <span class="ko">서양 미술사</span>
+    <span class="en">The Story of Art</span>
+    <span class="by">E. H. Gombrich</span>
+  </div>
+  <div class="stage">
+    <div class="book">
+      <div class="cast"></div>
+      <div class="fore"></div>
+      <div class="front">
+        <svg class="emblem" id="cover-emblem" viewBox="0 0 200 200" role="img" aria-label="표지 엠블럼">
+          <use class="hi" href="#em-laurel"></use>
+          <use class="lo" href="#em-laurel"></use>
+        </svg>
+      </div>
+    </div>
+  </div>
+  <div class="picker" role="group" aria-label="표지에 올릴 시안" id="picker"></div>
+</section>
+
+<section class="sheet">
+  <h2>네 가지 선 엠블럼</h2>
+  <p class="lead">모두 고대 그리스·로마와 르네상스에서 실제로 쓰던 모티프예요. 도면을 누르면 위 책 표지에 올라갑니다. 표지에서는 종이에 눌러 찍은 것처럼 보이도록 회색 선과 흰 빛 선을 겹쳤어요.</p>
+  <div class="grid" id="grid"></div>
+</section>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+  const r2 = n => Math.round(n * 100) / 100;
+  const P = (cx, cy, r, deg) => {
+    const a = deg * Math.PI / 180;
+    return [r2(cx + r * Math.cos(a)), r2(cy + r * Math.sin(a))];
+  };
+  const pt = p => p.join(" ");
+  const path = (d, extra = "") => `<path d="${d}" fill="none" ${extra}/>`;
+  const circle = (cx, cy, r) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none"/>`;
+  const dot = (cx, cy, r) => `<circle cx="${r2(cx)}" cy="${r2(cy)}" r="${r}" fill="currentColor" stroke="none"/>`;
+  const spiral = (cx, cy, r0, r1, a0, turns, dir, steps = 140) => {
+    let d = "";
+    for (let i = 0; i <= steps; i++) {
+      const t = i / steps;
+      const [x, y] = P(cx, cy, r0 + (r1 - r0) * t, a0 + dir * 360 * turns * t);
+      d += (i ? "L" : "M") + x + " " + y;
+    }
+    return d;
+  };
+  const leaf = (x, y, ang, L, W) =>
+    `<path fill="none" d="M0 0Q${r2(L * .5)} ${r2(-W)} ${r2(L)} 0Q${r2(L * .5)} ${r2(W)} 0 0ZM${r2(L * .14)} 0L${r2(L * .78)} 0" transform="translate(${r2(x)} ${r2(y)}) rotate(${r2(ang)})"/>`;
+  const mirror = s => `<g transform="matrix(-1 0 0 1 200 0)">${s}</g>`;
+
+  /* A. 월계관: 1950(MCML) 초판 */
+  function laurel() {
+    const cx = 100, cy = 100, R = 64;
+    let side = path(`M${pt(P(cx, cy, R, 84))}A${R} ${R} 0 0 1 ${pt(P(cx, cy, R, 262))}`);
+    for (let i = 0; i < 8; i++) {
+      const th = 110 + i * 18.6, k = 1 - i * .05, tan = th + 90;
+      const [ox, oy] = P(cx, cy, R, th);
+      const [ix, iy] = P(cx, cy, R, th + 8);
+      side += leaf(ox, oy, tan - 40, 23 * k, 6.6 * k);
+      side += leaf(ix, iy, tan + 42, 19 * k, 5.6 * k);
+      if (i === 2 || i === 5) { const [bx, by] = P(cx, cy, R - 9, th + 13); side += dot(bx, by, 1.9); }
+    }
+    const [tx, ty] = P(cx, cy, R, 262);
+    side += leaf(tx, ty, 352, 17, 4.8);
+    const ribbonL = path("M100 165C92 157 82 160 85.5 167C88.5 171.5 95 169.5 100 165Z") +
+      path("M99 166C96 173 92.5 178.5 88 184.5L92.5 183.6L93.4 187.6C96.8 181 98.6 174 100 167");
+    return side + mirror(side) + ribbonL + mirror(ribbonL) + circle(100, 165.5, 2.6) +
+      path("M84 86.5H116") + path("M84 113.5H116") +
+      `<text x="100" y="105.2" text-anchor="middle" font-family="Cormorant SC, Cormorant Garamond, serif" font-weight="500" font-size="15" letter-spacing="3.2" fill="currentColor" stroke="none">MCML</text>`;
+  }
+
+  /* B. 이오니아 기둥 */
+  function ionic() {
+    let s = "";
+    s += path("M60 53H140V59H60Z");
+    s += path(spiral(72, 74, 13, 2.4, -90, 2.25, -1)) + circle(72, 74, 1.8);
+    s += path(spiral(128, 74, 13, 2.4, -90, 2.25, 1)) + circle(128, 74, 1.8);
+    s += path("M72 61H128") + path("M78 65.8H122");
+    s += path("M84 66.5Q100 81 116 66.5");
+    [[91, 70.5], [100, 72], [109, 70.5]].forEach(([x, y]) =>
+      s += `<ellipse cx="${x}" cy="${y}" rx="2.6" ry="3.6" fill="none"/>`);
+    s += path("M83 82H117") + path("M83.6 85.5H116.4");
+    const top = [84, 116], bot = [81, 119];
+    s += path(`M${top[0]} 85.5L${bot[0]} 152`) + path(`M${top[1]} 85.5L${bot[1]} 152`);
+    for (let i = 1; i <= 5; i++) {
+      const f = i / 6;
+      const xt = top[0] + (top[1] - top[0]) * f, xb = bot[0] + (bot[1] - bot[0]) * f;
+      s += path(`M${r2(xt)} 89L${r2(xb)} 149`);
+    }
+    s += path("M79 152H121Q124.5 155 121 158H79Q75.5 155 79 152Z");
+    s += path("M80 158Q82.5 160.5 78 163H122Q117.5 160.5 120 158");
+    s += path("M74 163H126Q130.5 166.5 126 170H74Q69.5 166.5 74 163Z");
+    s += path("M68 170H132V176H68Z");
+    return `<g transform="translate(0 -14.5)">${s}</g>` + circle(100, 100, 90) + circle(100, 100, 86.5);
+  }
+
+  /* C. 팔메트(안테미온) + 구슬 테두리 */
+  function palmette() {
+    let s = "";
+    const bx = 100, by = 138;
+    for (let i = 0; i < 9; i++) {
+      const ang = -162 + i * 18, d = Math.abs(i - 4);
+      const L = 64 - d * 5.2, W = 8.4 - d * .55;
+      const [sx, sy] = P(bx, by, 9, ang);
+      s += `<path fill="none" transform="translate(${sx} ${sy}) rotate(${ang})" d="M0 0C${r2(L * .35)} ${r2(-W * .12)} ${r2(L * .68)} ${r2(-W)} ${r2(L * .9)} ${r2(-W * .62)}Q${r2(L * 1.04)} 0 ${r2(L * .9)} ${r2(W * .62)}C${r2(L * .68)} ${r2(W)} ${r2(L * .35)} ${r2(W * .12)} 0 0Z"/>`;
+    }
+    s += path("M85 141Q100 120 115 141");
+    s += path("M92 140Q100 128 108 140");
+    const scroll = path("M100 148C91 152.5 80 152.5 70 151") + path(spiral(70, 140, 11, 2.4, 90, 1.7, 1)) + dot(70, 140, 1.6);
+    s += scroll + mirror(scroll);
+    s += path("M100 148V160") + path("M91 162Q100 154 109 162") + path("M95 167Q100 162 105 167");
+    let ring = circle(100, 100, 91);
+    for (let i = 0; i < 56; i++) { const [x, y] = P(100, 100, 86, i * 360 / 56); ring += dot(x, y, 1.15); }
+    return `<g transform="translate(0 -12)">${s}</g>` + ring;
+  }
+
+  /* D. 반원 아치와 떠오르는 빛 */
+  function arch() {
+    let s = "";
+    s += path("M44 100A56 56 0 0 1 156 100") + path("M54 100A46 46 0 0 1 146 100");
+    for (let i = 1; i < 12; i++) {
+      const a = 180 + i * 15; if (a === 270) continue;
+      s += path(`M${pt(P(100, 100, 46, a))}L${pt(P(100, 100, 56, a))}`);
+    }
+    s += path(`M${pt(P(100, 100, 44, 263.5))}L${pt(P(100, 100, 61, 262))}L${pt(P(100, 100, 61, 278))}L${pt(P(100, 100, 44, 276.5))}Z`);
+    s += path("M40 100H58V105H40Z") + path("M142 100H160V105H142Z");
+    s += path("M44 105V160") + path("M54 105V160") + path("M146 105V160") + path("M156 105V160");
+    s += path("M87 160A13 13 0 0 1 113 160");
+    for (let a = 195; a <= 345; a += 15) {
+      const long = (a / 15) % 2 === 1;
+      s += path(`M${pt(P(100, 160, 18, a))}L${pt(P(100, 160, long ? 38 : 29, a))}`);
+    }
+    s += path("M36 160H164") + path("M30 166.5H170") + path("M24 173H176");
+    return `<g transform="translate(0 -8)">${s}</g>`;
+  }
+
+  const EMBLEMS = [
+    { id: "laurel", no: "A", ko: "월계관", en: "Laurel", draw: laurel,
+      text: "그리스·로마에서 승리와 명예를 뜻하던 잎이에요. 가운데 MCML은 로마 숫자로 1950, 이 책 초판이 나온 해예요." },
+    { id: "ionic", no: "B", ko: "이오니아 기둥", en: "Ionic", draw: ionic,
+      text: "그리스 신전의 기둥 머리예요. 양쪽 소용돌이가 작은 크기에서도 또렷하게 읽혀서 표지 한가운데에 잘 서요." },
+    { id: "palmette", no: "C", ko: "팔메트", en: "Anthemion", draw: palmette,
+      text: "그리스 항아리와 신전 처마에 되풀이되던 종려잎 무늬예요. 테두리의 구슬 장식까지 고대 문양을 그대로 따랐어요." },
+    { id: "arch", no: "D", ko: "아치와 빛", en: "Lunette", draw: arch,
+      text: "로마가 만들고 르네상스가 다시 꺼낸 반원 아치예요. 문 안쪽에서 빛이 떠올라 전시실 입구에 들어서는 느낌을 줘요." },
+  ];
+
+  const defs = document.getElementById("defs");
+  defs.innerHTML = EMBLEMS.map(e =>
+    `<symbol id="em-${e.id}" viewBox="0 0 200 200" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">${e.draw()}</symbol>`
+  ).join("");
+
+  const coverSvg = document.getElementById("cover-emblem");
+  const picker = document.getElementById("picker");
+  const grid = document.getElementById("grid");
+  let current = "laurel", timer;
+
+  picker.innerHTML = EMBLEMS.map(e =>
+    `<button type="button" data-em="${e.id}" aria-pressed="false"><b>${e.no}</b>${e.ko}</button>`).join("");
+  grid.innerHTML = EMBLEMS.map(e => `
+    <article class="plate">
+      <button type="button" class="art" data-em="${e.id}" aria-pressed="false" aria-label="${e.ko} 시안을 표지에 올리기">
+        <svg viewBox="0 0 200 200" aria-hidden="true"><use href="#em-${e.id}"></use></svg>
+      </button>
+      <span class="no">${e.no}</span>
+      <h3>${e.ko}<i>${e.en}</i></h3>
+      <p>${e.text}</p>
+    </article>`).join("");
+
+  function show(id, animate = true) {
+    current = id;
+    document.querySelectorAll("[data-em]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.em === id)));
+    const apply = () => {
+      coverSvg.querySelectorAll("use").forEach(u => u.setAttribute("href", "#em-" + id));
+      coverSvg.classList.remove("swap");
+    };
+    clearTimeout(timer);
+    if (!animate) return apply();
+    coverSvg.classList.add("swap");
+    timer = setTimeout(apply, 380);
+  }
+  document.addEventListener("click", ev => {
+    const b = ev.target.closest("[data-em]");
+    if (!b) return;
+    show(b.dataset.em);
+    if (b.classList.contains("art")) window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+  show(current, false);
+})();
+</script>
