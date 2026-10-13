@@ -5,7 +5,10 @@
 | 경로 | 내용 |
 | --- | --- |
 | [emblems/](emblems/index.html) | 랜딩 v2 방향 시안: 흰 벽 위 흰 책, 뒤로 지나가는 회색 제목, 표지 선 엠블럼 4종(월계관·이오니아 기둥·팔메트·아치). 미리보기: https://claude.ai/artifact/5XTMYjBimYzm8qB4bo63AX |
-| [landing/](landing/index.html) | 랜딩 시제품: 책이 열리고 펼친 양면이 8개 시대 연표가 된다. 미리보기: https://claude.ai/artifact/BAquwU6qrRogqN7CYNBLSD |
+| [landing/](landing/index.html) | 랜딩 시제품 v2: 흰 벽 위 흰 책(three.js WebGL)이 열리고, 책장이 휘며 넘어간 뒤 카메라가 들어가 펼친 양면이 8개 시대 연표가 된다. 미리보기: https://claude.ai/artifact/BAquwU6qrRogqN7CYNBLSD |
+| [landing/v1.html](landing/v1.html) | 랜딩 시제품 v1 (어두운 방, CSS 3D 책). 비교용 |
 
+- v2 기술: three.js r128(WebGL, 스포트라이트 VSM 그림자, 엠블럼 높이 지도→노멀 맵 음각, 책등부터 각도를 적분해 길이를 보존하며 휘는 낱장), GSAP 3.12.5(타임라인). 엠블럼은 스크립트가 좌표로 그려 SVG와 캔버스에 같이 쓴다.
+- 화면 확인: 래퍼 `<head>`에 `window.__pauseIntro=true`를 넣으면 타임라인이 멈춘 채 시작한다. `__intro.tl.seek(초)` 후 `__intro.render()`로 원하는 순간을 찍는다(소프트웨어 WebGL이라 느리다).
 - `landing/index.html`은 아티팩트 형식이라 `<!doctype>`, `<head>`, `<body>` 태그가 없다. 로컬에서 볼 때는 브라우저가 알아서 감싼다.
 - `landing/img/`: 위키미디어 커먼즈 이미지. `eraN.jpg`는 연표용 세부(480×640), `eraN-full.jpg`는 방 입장용 전체. 출처는 페이지의 "도판 출처"에 있다.

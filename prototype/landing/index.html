@@ -1,137 +1,90 @@
 <title>서양 미술사 도슨트</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500&family=EB+Garamond:ital,wght@1,400;1,500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,500..900&family=Black+Han+Sans&family=Cinzel:wght@500;600&family=Inter+Tight:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700;900&display=swap">
 <style>
-/* Layout: 어두운 방 한가운데 책 한 권 → 표지가 열리고 → 펼친 양면이 곧 사이트가 된다. 단일 세계관(어둠 → 종이)이라 테마 전환 없음. */
+/* Layout: 흰 벽 → 흰 책(WebGL) → 표지가 열리고 책장이 휘며 넘어간다 → 카메라가 들어가 펼친 양면이 곧 연표가 된다.
+   타이포: 레퍼런스처럼 굵은 압축 그로테스크(제목) + Inter Tight(본문). 엠블럼만 고전 대문자(Cinzel).
+   벽과 종이의 밝은 단일 세계관이라 다크 테마를 두지 않는다. */
 :root {
-  color-scheme: dark;
-  --night: #1a1816;         /* 책이 놓인 어두운 방 */
-  --paper: #ece6da;         /* 속지, 그리고 사이트 바탕 */
-  --paper-edge: #d8d0c0;    /* 책장 단면, 접힌 그림자 */
-  --ink: #1f1c19;           /* 본문 잉크 */
-  --ink-soft: #6a6157;      /* 연대, 보조 글 */
-  --ribbon: #8b2a22;        /* 책갈피 리본 */
-  --cover: #1f2b36;         /* 표지: 먹청 (테라코타로 바꿀 수 있음) */
-  --cover-type: #d9cfbd;    /* 표지 글자 */
-  --f-display: "Gowun Batang", "Nanum Myeongjo", "Noto Serif KR", serif;
-  --f-body: "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
-  --f-latin: "EB Garamond", "Garamond", "Times New Roman", serif;
-  --ease-out: cubic-bezier(.22,.7,.18,1);
+  color-scheme: light;
+  --wall: #f3f2ef;          /* 책이 놓인 벽 */
+  --paper: #f6f4ef;         /* 속지, 사이트 바탕 (WebGL 종이와 같은 값) */
+  --ink: #141311;           /* 글자 */
+  --ink-soft: #8a857c;      /* 보조 글 */
+  --ghost: #d5d2ca;         /* 벽에 쓴 회색 제목 */
+  --hair: rgba(20,19,17,.14);
+  --night: #11100f;         /* 방 */
+  --f-display: "Archivo", "Arial Narrow", "Helvetica Neue", sans-serif;     /* font-stretch 62.5%, 900 */
+  --f-ko-display: "Black Han Sans", "Noto Sans KR", sans-serif;
+  --f-body: "Inter Tight", "Noto Sans KR", "Apple SD Gothic Neo", system-ui, sans-serif;
+  --f-emblem: "Cinzel", "Trajan Pro", serif;
+  --ease: cubic-bezier(.16,1,.3,1);
+  --gutter: 9vw;            /* 책등 그림자 폭: JS가 WebGL 화면과 맞춘다 */
 }
-:root[data-cover="terra"] { --cover: #8a5240; --cover-type: #f0e3cf; }
-
 html, body { height: 100%; }
+html.intro-on { overflow: hidden; }
 body {
-  background: var(--night);
-  color: var(--ink);
-  font-family: var(--f-body);
-  font-size: 15px;
-  line-height: 1.6;
-  -webkit-font-smoothing: antialiased;
-  word-break: keep-all;
-  overflow-wrap: break-word;
+  background: var(--paper); color: var(--ink);
+  font-family: var(--f-body); font-size: 15px; line-height: 1.55; font-weight: 450;
+  -webkit-font-smoothing: antialiased; word-break: keep-all; overflow-wrap: break-word;
 }
 a { color: inherit; }
-:focus-visible { outline: 2px solid var(--ribbon); outline-offset: 3px; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 1.5px solid var(--ink); outline-offset: 3px; }
+.label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
+}
+.label::before { content: ""; width: 7px; height: 7px; background: currentColor; }
 
-/* ───────── 1. 인트로: 책 ───────── */
+/* ───────── 1. 인트로: 벽과 책 ───────── */
 #intro {
-  position: fixed; inset: 0; z-index: 20;
-  background: var(--night);
-  display: grid; place-items: center;
-  overflow: hidden;
-  transition: opacity .35s ease;
+  position: fixed; inset: 0; z-index: 20; background: var(--wall);
+  background-image: radial-gradient(90vmax 70vmax at 28% 18%, #fbfaf8 0%, rgba(251,250,248,0) 60%);
 }
-#intro.gone { opacity: 0; pointer-events: none; }
-.scene { perspective: 2200px; perspective-origin: 50% 45%; }
-.book {
-  --h: min(46vh, 460px);
-  --w: calc(var(--h) * .68);
-  position: relative;
-  width: var(--w); height: var(--h);
-  transform-style: preserve-3d;
-  transform: translate3d(0,0,0) scale(1);
-  transition: transform 1.25s cubic-bezier(.55,0,.25,1);
+#intro[hidden] { display: none !important; }
+#gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.ghost { position: absolute; inset: 0; pointer-events: none; user-select: none; color: var(--ghost); transform-origin: 50% 50%; }
+.ghost .line { position: absolute; left: 50%; top: 50%; overflow: hidden; white-space: nowrap; padding-inline: .04em; }
+.ghost .line > span { display: block; }
+/* 한글 제목: 아래 40%가 책에 가린다 */
+.ghost .ko {
+  font-family: var(--f-ko-display); font-weight: 400;
+  font-size: clamp(76px, 16.5vw, 262px); line-height: 1.08; letter-spacing: -.005em;
+  transform: translate(-50%, calc(var(--bh, 50vh) / -2 - .66em));
 }
-.book.push { transform: translate3d(var(--tx, 0px), 0, 0) scale(var(--zoom, 2.4)); }
-
-/* 페이지 덩어리: 오른쪽 면 */
-.block {
-  position: absolute; inset: 0;
-  background: var(--paper);
-  border-radius: 1px 3px 3px 1px;
-  box-shadow:
-    inset 6px 0 10px -6px rgba(0,0,0,.35),
-    3px 0 0 var(--paper-edge), 5px 1px 0 #cfc6b5, 7px 2px 0 #c5bba9,
-    0 30px 60px -20px rgba(0,0,0,.7);
+/* 영문 제목: 책 아랫단이 위쪽을 살짝 덮는다 */
+.ghost .en {
+  font-family: var(--f-display); font-stretch: 62.5%; font-weight: 900; text-transform: uppercase;
+  font-size: clamp(50px, 10.4vw, 168px); line-height: 1; letter-spacing: -.004em;
+  transform: translate(-50%, calc(var(--bh, 50vh) / 2 - .3em));
 }
-.leaf {
-  position: absolute; inset: 0;
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  transition: transform .45s var(--ease-out);
+.ghost .by {
+  font-size: 10px; font-weight: 600; letter-spacing: .32em; text-transform: uppercase; color: #b4afa5;
+  transform: translate(-50%, calc(var(--bh, 50vh) / 2 + clamp(50px, 10.4vw, 168px) * .74 + 16px));
+  padding-left: .32em;
 }
-.leaf::before, .leaf::after {
-  content: ""; position: absolute; inset: 0;
-  background: var(--paper); backface-visibility: hidden;
-  box-shadow: inset 8px 0 14px -8px rgba(0,0,0,.25);
+.chrome {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: calc(18px + env(safe-area-inset-top, 0px)) 22px 0;
 }
-.leaf::after { transform: rotateY(180deg); background: #e6dfd1; }
-.leaf.turn { transform: rotateY(-178deg); }
-
-/* 표지 */
-.cover {
-  position: absolute; inset: 0;
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  transition: transform .8s var(--ease-out);
+.wordmark {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: var(--f-display); font-stretch: 62.5%; font-weight: 900; font-size: 22px;
+  text-transform: uppercase; letter-spacing: -.005em; line-height: 1;
 }
-.cover.open { transform: rotateY(-178deg); }
-.cover-front, .cover-back {
-  position: absolute; inset: 0; backface-visibility: hidden;
-  border-radius: 2px 4px 4px 2px;
+.wordmark svg { width: 26px; height: 26px; }
+.pill {
+  display: inline-flex; align-items: center; gap: 10px;
+  border: 0; border-radius: 999px; cursor: pointer;
+  background: var(--ink); color: #fff;
+  padding: 9px 16px 9px 9px; font-size: 13px; font-weight: 500; line-height: 1;
 }
-.cover-front {
-  background-color: var(--cover);
-  /* 클로스(천) 결: 가는 가로·세로 실 + 미세한 얼룩 */
-  background-image:
-    repeating-linear-gradient(0deg, rgba(255,255,255,.035) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(90deg, rgba(0,0,0,.08) 0 1px, transparent 1px 3px),
-    radial-gradient(120% 90% at 30% 20%, rgba(255,255,255,.07), transparent 60%);
-  box-shadow: inset 10px 0 12px -10px rgba(0,0,0,.6), inset -1px 0 0 rgba(255,255,255,.06);
-  display: grid; grid-template-rows: 1fr auto; padding: 14% 12% 11%;
-  color: var(--cover-type);
-  transition: background-color .5s ease, color .5s ease;
-}
-.cover-front .title-ko {
-  align-self: center; justify-self: center; text-align: center;
-  font-family: var(--f-display); font-weight: 700;
-  font-size: calc(var(--h) * .085); letter-spacing: .04em; line-height: 1.25;
-}
-.cover-front .title-en {
-  display: block; margin-top: .55em;
-  font-family: var(--f-latin); font-style: italic; font-weight: 400;
-  font-size: .5em; letter-spacing: .02em; opacity: .82;
-}
-.cover-front .imprint {
-  text-align: center; font-family: var(--f-display);
-  font-size: calc(var(--h) * .026); letter-spacing: .12em; opacity: .7;
-}
-.cover-back { transform: rotateY(180deg); background: #e3dccd; }
-
-/* 조명: 좌상단 낮은 빛이 천천히 밝아진다 */
-.light {
-  position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(60vmax 50vmax at 32% 22%, rgba(255,236,205,.16), transparent 65%);
-  opacity: .25; transition: opacity 1s ease;
-}
-.light.on { opacity: 1; }
-#intro.pushing .light, #intro.pushing .dim { opacity: 0; transition: opacity .7s ease; }
-.dim {
-  position: absolute; inset: 0; pointer-events: none;
-  background: radial-gradient(closest-side at 50% 50%, transparent 55%, rgba(0,0,0,.55));
-}
+.pill .dot { width: 22px; height: 22px; border-radius: 50%; background: #2b2a27; display: grid; place-items: center; }
+.pill .dot::before { content: ""; width: 7px; height: 7px; border-top: 1.5px solid #fff; border-right: 1.5px solid #fff; transform: translateX(-1px) rotate(45deg); }
+.pill:hover { background: #000; }
 
 /* ───────── 2. 펼친 양면 = 사이트 ───────── */
 #spread {
@@ -140,288 +93,219 @@ a { color: inherit; }
   display: grid; grid-template-columns: 1fr 1fr;
   position: relative;
 }
-/* 책등: 가운데 접힌 그림자 */
-#spread::before {
-  content: ""; position: absolute; top: 0; bottom: 0; left: 50%; width: 120px; transform: translateX(-50%);
-  background: linear-gradient(90deg, transparent, rgba(60,48,32,.10) 42%, rgba(60,48,32,.22) 50%, rgba(60,48,32,.10) 58%, transparent);
-  pointer-events: none;
+#spread::before {           /* 책등: WebGL 종이의 그늘과 같은 그라데이션 */
+  content: ""; position: absolute; top: 0; bottom: 0; left: 50%;
+  width: calc(var(--gutter) * 2); transform: translateX(-50%); pointer-events: none;
+  background: linear-gradient(90deg,
+    rgba(70,60,45,0) 0%, rgba(70,60,45,.035) 30%, rgba(70,60,45,.075) 42%, rgba(70,60,45,.15) 50%,
+    rgba(70,60,45,.075) 58%, rgba(70,60,45,.035) 70%, rgba(70,60,45,0) 100%);
 }
 .page {
-  display: grid; grid-template-rows: auto 1fr auto;
-  gap: 28px;
-  padding-block: clamp(28px, 5vh, 56px) clamp(22px, 4vh, 40px);
-  padding-inline: clamp(20px, 5vw, 80px);
+  display: grid; grid-template-rows: auto 1fr auto; gap: 28px;
+  padding-block: clamp(22px, 4vh, 40px) clamp(20px, 3.5vh, 34px);
+  padding-inline: clamp(20px, 4.4vw, 76px);
   min-width: 0;
 }
-.page.left { padding-right: clamp(36px, 4vw, 72px); }
-.page.right { padding-left: clamp(36px, 4vw, 72px); }
+.page.left { padding-right: clamp(40px, 4.5vw, 80px); }
+.page.right { padding-left: clamp(40px, 4.5vw, 80px); }
 .runhead {
-  display: flex; justify-content: space-between; align-items: baseline;
-  font-size: 12px; letter-spacing: .14em; color: var(--ink-soft);
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase;
 }
-.runhead .latin { font-family: var(--f-latin); font-style: italic; font-size: 15px; letter-spacing: .02em; }
-.folio { font-family: var(--f-latin); font-size: 14px; color: var(--ink-soft); }
-.page.left .folio { text-align: left; }
+.runhead .mark { display: inline-flex; align-items: center; gap: 10px; }
+.runhead svg { width: 22px; height: 22px; color: var(--ink); }
+.runhead .soft { color: var(--ink-soft); }
+.folio { font-size: 12px; font-weight: 600; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .page.right .folio { text-align: right; }
 
-.intro-note {
-  display: grid; gap: 6px; max-width: 34ch;
+.page-body { display: grid; grid-template-rows: minmax(200px, auto) auto; align-content: start; gap: 34px; min-width: 0; padding-top: clamp(12px, 6vh, 80px); }
+.page-note { display: grid; gap: 16px; align-content: end; justify-items: start; }
+.statement {
+  margin: 0; font-family: var(--f-body); font-weight: 700;
+  font-size: clamp(24px, 2.35vw, 38px); line-height: 1.2; letter-spacing: -.035em;
+  text-wrap: balance; max-width: 17em;
 }
-.intro-note .label { font-size: 12px; letter-spacing: .14em; color: var(--ink-soft); }
-.intro-note blockquote {
-  margin: 0; font-family: var(--f-display); font-size: clamp(18px, 1.6vw, 22px); line-height: 1.5;
-  text-wrap: balance;
-}
-.intro-note a { font-size: 13px; color: var(--ink-soft); text-underline-offset: 3px; }
-.intro-note a:hover { color: var(--ink); }
-
-.page-body { display: grid; grid-template-rows: minmax(190px, auto) auto; align-content: start; gap: 28px; min-width: 0; padding-top: clamp(16px, 8vh, 96px); }
-.page-note { display: grid; gap: 14px; align-content: end; justify-items: start; }
+.statement .q { color: var(--ink-soft); }
+.page-note a { font-size: 13px; font-weight: 600; text-underline-offset: 4px; }
+.page-note a:hover { text-decoration-thickness: 2px; }
 
 /* 연표 */
 .eras {
   list-style: none; margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  align-items: start;
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); align-items: start;
 }
 .era { position: relative; min-width: 0; padding-right: 14px; }
-.era-btn {
-  all: unset; cursor: pointer; display: grid; gap: 0; width: 100%;
-}
-.era-btn:focus-visible { outline: 2px solid var(--ribbon); outline-offset: 6px; }
+.era-btn { all: unset; cursor: pointer; display: grid; width: 100%; }
+.era-btn:focus-visible { outline: 1.5px solid var(--ink); outline-offset: 6px; }
 .plate {
   position: relative; aspect-ratio: 3 / 4; max-width: 100%;
-  overflow: hidden; background: var(--paper-edge);
+  overflow: hidden; background: #e7e3da;
 }
 .plate img {
   display: block; width: 100%; height: 100%; object-fit: cover;
-  mix-blend-mode: multiply;           /* 종이에 인쇄된 듯 */
-  filter: saturate(.92) contrast(1.02);
-  transition: transform .5s var(--ease-out), filter .5s ease;
+  mix-blend-mode: multiply; filter: saturate(.9);
+  transition: transform .9s var(--ease), filter .6s ease;
 }
-.era-btn:hover .plate img, .era.open .plate img { transform: scale(1.05); filter: saturate(1) contrast(1.05); }
-/* 연표 선과 눈금 */
-.tick {
-  position: relative; height: 22px; margin-right: -14px;
+.era-btn:hover .plate img, .era.open .plate img { transform: scale(1.06); filter: saturate(1.05); }
+.tick { position: relative; height: 24px; margin-right: -14px; }
+.tick::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1.5px; background: var(--ink); transform-origin: left center; }
+.tick::after { content: ""; position: absolute; left: 0; top: 50%; width: 7px; height: 7px; translate: 0 -3.5px; background: var(--ink); }
+.era-num {
+  display: block; font-family: var(--f-display); font-stretch: 62.5%; font-weight: 900;
+  font-size: clamp(34px, 3vw, 48px); line-height: .9; letter-spacing: -.01em; font-variant-numeric: tabular-nums;
 }
-.tick::before {             /* 선 */
-  content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 1.5px; background: var(--ink);
-  transform-origin: left center;
-}
-.tick::after {              /* 눈금 */
-  content: ""; position: absolute; left: 0; top: 50%; width: 7px; height: 7px; border-radius: 50%;
-  translate: -3px -3.5px; background: var(--paper); border: 1.5px solid var(--ink);
-}
-.era-num { font-family: var(--f-latin); font-size: 13px; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-.era-name {
-  font-family: var(--f-display); font-weight: 700; font-size: clamp(16px, 1.35vw, 20px); line-height: 1.3;
-  text-wrap: balance; margin-top: 2px;
-}
-.era-date { font-size: 12px; color: var(--ink-soft); font-variant-numeric: tabular-nums; margin-top: 2px; }
-.era-line {
-  font-family: var(--f-display); font-size: 14px; line-height: 1.5; margin-top: 8px; color: var(--ink);
-  text-wrap: pretty;
-}
-/* 방 목록 (펼침) */
-.rooms {
-  display: grid; grid-template-rows: 0fr; transition: grid-template-rows .4s var(--ease-out);
-}
+.era-name { display: block; font-weight: 700; font-size: clamp(15px, 1.2vw, 18px); line-height: 1.3; letter-spacing: -.025em; margin-top: 8px; text-wrap: balance; }
+.era-date { display: block; font-size: 12px; font-weight: 500; color: var(--ink-soft); font-variant-numeric: tabular-nums; margin-top: 2px; }
+.era-line { display: block; font-size: 13.5px; font-weight: 500; line-height: 1.45; letter-spacing: -.012em; margin-top: 10px; text-wrap: pretty; }
+.rooms { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .55s var(--ease); }
 .era.open .rooms { grid-template-rows: 1fr; }
-.rooms > ol {
-  overflow: hidden; list-style: none; margin: 0; padding: 0;
-  display: grid; gap: 2px;
-}
-.era.open .rooms > ol { padding-top: 10px; }
+.rooms > ol { overflow: hidden; list-style: none; margin: 0; padding: 0; display: grid; }
+.era.open .rooms > ol { padding-top: 12px; }
 .rooms a {
-  display: block; padding: 5px 0; font-size: 13.5px; line-height: 1.4; text-decoration: none;
-  border-top: 1px solid rgba(31,28,25,.18);
+  display: block; padding: 7px 0; font-size: 13.5px; font-weight: 600; line-height: 1.35; letter-spacing: -.015em;
+  text-decoration: none; border-top: 1px solid var(--hair);
 }
-.rooms a:hover { color: var(--ribbon); }
-.rooms .room-sub { display: block; font-size: 12px; color: var(--ink-soft); }
+.rooms a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.rooms .room-sub { display: block; font-size: 12px; font-weight: 500; color: var(--ink-soft); }
 
-/* 진도 (다시 온 사람) */
-.era .progress { display: none; height: 2px; margin-top: 10px; background: rgba(31,28,25,.15); }
-.era .progress span { display: block; height: 100%; width: 40%; background: var(--ribbon); }
-body.returning .era.done .tick::after { background: var(--ink); }
-body.returning .era:not(.done) .tick::before { background: rgba(31,28,25,.35); }
-body.returning .era.done .era-name::after { content: " ✓"; font-family: var(--f-body); font-size: .7em; color: var(--ink-soft); font-weight: 400; }
+/* 다시 온 사람 */
+.era .progress { display: none; height: 2px; margin-top: 10px; background: var(--hair); }
+.era .progress span { display: block; height: 100%; width: 40%; background: var(--ink); }
+body.returning .era:not(.done):not(.current) .tick::before { background: rgba(20,19,17,.25); }
+body.returning .era.done .era-name::after { content: " ✓"; font-size: .75em; color: var(--ink-soft); }
 body.returning .era.current .progress { display: block; }
 .ribbon {
-  display: none; position: absolute; top: -22px; left: 14px; width: 18px; height: 96px;
-  background: var(--ribbon);
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 86%, 0 100%);
-  box-shadow: 0 2px 3px rgba(0,0,0,.2);
-  transform: translateY(-110%); transition: transform .6s var(--ease-out);
-  z-index: 2;
+  display: none; position: absolute; top: -22px; left: 14px; width: 16px; height: 92px; z-index: 2;
+  background: var(--ink); clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 85%, 0 100%);
 }
 body.returning .era.current .ribbon { display: block; }
-body.returning .era.current .ribbon.in { transform: translateY(0); }
-
-.continue {
-  display: none; justify-self: start; align-items: center; gap: 12px;
-  border: 0; cursor: pointer; font: inherit;
-  background: var(--ink); color: var(--paper);
-  padding: 12px 18px 12px 20px; border-radius: 2px;
-  font-size: 14px;
-}
-.continue b { font-family: var(--f-display); font-weight: 700; font-size: 15px; }
-.continue:hover { background: #000; }
+.continue { display: none; }
 body.returning .continue { display: inline-flex; }
+.continue b { font-weight: 700; }
+.right-head .statement { max-width: 12em; }
 
-/* 인쇄되듯 나타나기 (JS가 .pre를 붙였을 때만 숨김 → JS가 없으면 처음부터 보인다) */
-.pre .tick::before { transform: scaleX(0); }
-.pre .tick::after { opacity: 0; }
-.pre .plate img { opacity: 0; clip-path: inset(0 0 100% 0); filter: grayscale(1) contrast(1.6) blur(1px); }
-.pre .era-text, .pre .intro-note, .pre .runhead, .pre .folio, .pre .right-head { opacity: 0; }
-.reveal .tick::before { transition: transform .32s linear; transition-delay: var(--d-line); }
-.reveal .tick::after { transition: opacity .2s ease; transition-delay: calc(var(--d-line) + .08s); }
-.reveal .plate img { transition: opacity .5s ease, clip-path .7s var(--ease-out), filter .9s ease, transform .5s var(--ease-out); transition-delay: var(--d-img); }
-.reveal .era-text { transition: opacity .5s ease; transition-delay: var(--d-txt); }
-.reveal .intro-note, .reveal .runhead, .reveal .folio, .reveal .right-head { transition: opacity .6s ease .1s; }
-
-.right-head .label { font-size: 12px; letter-spacing: .14em; color: var(--ink-soft); }
-.right-lead { margin: 0; font-family: var(--f-display); font-size: clamp(18px, 1.6vw, 22px); line-height: 1.5; max-width: 22ch; }
-
-/* ───────── 3. 방 (확대 전환 데모) ───────── */
-#zoom {
-  position: fixed; z-index: 30; object-fit: cover; pointer-events: none;
-  transition: all .6s var(--ease-out);
-}
+/* ───────── 3. 방 ───────── */
 #room {
-  position: fixed; inset: 0; z-index: 25; background: var(--night); color: var(--paper);
-  display: grid; grid-template-rows: 1fr auto; overflow: auto;
+  position: fixed; inset: 0; z-index: 25; background: var(--night); color: #f3f1ec;
+  display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
 }
 #room[hidden] { display: none !important; }
-#room figure { margin: 0; display: grid; place-items: center; padding: 24px 16px 8px; min-height: 0; }
-#room figure img { max-height: 72vh; width: auto; max-width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.5); }
+#room figure { margin: 0; position: relative; overflow: hidden; min-height: 0; }
+#room figure img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 #room .caption {
-  display: grid; gap: 8px; justify-items: center; text-align: center;
-  padding: 8px 16px 32px;
+  display: grid; align-content: end; gap: 14px; justify-items: start;
+  padding: 40px clamp(20px, 4vw, 64px) calc(40px + env(safe-area-inset-bottom, 0px));
 }
-#room .caption .r-era { font-size: 12px; letter-spacing: .14em; color: #a89f92; }
-#room .caption h2 { margin: 0; font-family: var(--f-display); font-size: clamp(22px, 2.4vw, 30px); font-weight: 700; text-wrap: balance; }
-#room .caption p { margin: 0; color: #b9b0a3; font-size: 14px; max-width: 46ch; }
-#room .back {
-  margin-top: 8px; border: 1px solid #5b544c; background: transparent; color: var(--paper);
-  font: inherit; font-size: 13px; padding: 9px 16px; cursor: pointer; border-radius: 2px;
-}
-#room .back:hover { border-color: var(--paper); }
+#room .r-era { color: #a29c92; }
+#room h2 { margin: 0; font-weight: 800; font-size: clamp(30px, 3.6vw, 56px); line-height: 1.08; letter-spacing: -.04em; text-wrap: balance; }
+#room p { margin: 0; color: #b9b3a9; font-size: 14.5px; max-width: 40ch; }
+#room .pill { background: #f3f1ec; color: var(--ink); margin-top: 10px; }
+#room .pill .dot { background: #dcd8cf; }
+#room .pill .dot::before { border-color: var(--ink); transform: translateX(1px) rotate(-135deg); }
+.fly { position: fixed; z-index: 30; overflow: hidden; pointer-events: none; will-change: left, top, width, height; }
+.fly img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.fly img.full { opacity: 0; }
 
-/* ───────── 시제품 설정 패널 ───────── */
+/* ───────── 시제품 설정 ───────── */
 #proto {
-  position: fixed; left: 12px; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); z-index: 40;
-  font-size: 12px; color: #d9d2c6; background: rgba(26,24,22,.88);
-  border: 1px solid #3a352f; border-radius: 4px; backdrop-filter: blur(6px);
+  position: fixed; left: 14px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); z-index: 40;
+  font-size: 12px; color: #f3f1ec; background: rgba(20,19,17,.92); border-radius: 18px;
+  backdrop-filter: blur(8px); min-width: 0;
 }
-#proto summary { cursor: pointer; padding: 8px 12px; letter-spacing: .08em; list-style: none; }
+#proto summary { cursor: pointer; padding: 9px 15px; font-weight: 600; list-style: none; }
 #proto summary::-webkit-details-marker { display: none; }
-#proto[open] summary { border-bottom: 1px solid #3a352f; }
-#proto .rows { display: grid; gap: 10px; padding: 10px 12px 12px; }
-#proto .row { display: grid; gap: 5px; }
+#proto .rows { display: grid; gap: 10px; padding: 2px 14px 14px; }
+#proto .row { display: grid; gap: 6px; }
 #proto .seg { display: flex; gap: 4px; flex-wrap: wrap; }
-#proto button {
-  font: inherit; color: inherit; background: transparent; border: 1px solid #4a443d; border-radius: 3px;
-  padding: 5px 9px; cursor: pointer;
-}
-#proto button[aria-pressed="true"] { background: #ece6da; color: #1a1816; border-color: #ece6da; }
-#proto .credits-link { color: #a89f92; }
-
-/* 도판 출처 */
+#proto button { background: transparent; border: 1px solid #4a4741; border-radius: 999px; padding: 5px 11px; cursor: pointer; }
+#proto button[aria-pressed="true"] { background: #f3f1ec; color: var(--ink); border-color: #f3f1ec; }
+#proto .credits-link { color: #b5afa4; }
 #credits {
-  border: 0; padding: 24px; max-width: min(560px, calc(100vw - 32px)); border-radius: 4px;
+  border: 0; padding: 26px; max-width: min(560px, calc(100vw - 32px)); border-radius: 6px;
   background: var(--paper); color: var(--ink); font-size: 13px; line-height: 1.55;
 }
-#credits::backdrop { background: rgba(0,0,0,.5); }
-#credits h2 { margin: 0 0 10px; font-family: var(--f-display); font-size: 18px; }
+#credits::backdrop { background: rgba(0,0,0,.45); }
+#credits h2 { margin: 0 0 12px; font-size: 18px; letter-spacing: -.02em; }
 #credits ol { margin: 0 0 14px; padding-left: 20px; display: grid; gap: 6px; }
-#credits button { font: inherit; border: 1px solid var(--ink); background: transparent; padding: 6px 12px; cursor: pointer; }
 
-/* ───────── 모바일: 한 면짜리 책, 세로 연표 ───────── */
+/* ───────── 모바일: 한 면, 세로 연표 ───────── */
 @media (max-width: 760px) {
-  .book { --h: min(52vh, 440px); }
   #spread { grid-template-columns: 1fr; }
   #spread::before { display: none; }
   .page { padding-inline: 20px; gap: 22px; }
   .page.left { padding-right: 20px; padding-bottom: 0; }
   .page.right { padding-left: 20px; padding-top: 0; }
   .page.left .folio, .page.right .runhead { display: none; }
-  .page-body { grid-template-rows: auto auto; padding-top: 0; }
-  .right-lead { display: none; }
-  .eras { grid-template-columns: 1fr; gap: 0; }
-  .era { padding-right: 0; padding-left: 26px; padding-bottom: 18px; }
-  .era-btn { grid-template-columns: 84px 1fr; column-gap: 14px; align-items: start; }
-  .tick { position: absolute; left: 0; top: 0; bottom: 0; width: 22px; height: auto; margin: 0; }
-  .tick::before { left: 10px; right: auto; top: 0; bottom: 0; width: 1.5px; height: auto; transform-origin: top center; }
-  .tick::after { left: 10px; top: 8px; }
-  .pre .tick::before { transform: scaleY(0); }
+  .page-body { grid-template-rows: auto auto; padding-top: 8px; }
+  .right-head .statement { display: none; }
+  .eras { grid-template-columns: 1fr; }
+  .era { padding-right: 0; padding-left: 26px; padding-bottom: 22px; }
+  .era-btn { grid-template-columns: 88px 1fr; column-gap: 16px; align-items: start; }
+  .tick { position: absolute; left: 0; top: 0; bottom: 0; width: 20px; height: auto; margin: 0; }
+  .tick::before { left: 3px; right: auto; top: 0; bottom: 0; width: 1.5px; height: auto; transform-origin: top center; }
+  .tick::after { left: 0; top: 10px; translate: 0 0; }
   .ribbon { top: -14px; left: auto; right: 0; height: 70px; }
-  .continue { position: fixed; left: 16px; right: 16px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); justify-content: center; z-index: 15; box-shadow: 0 8px 24px rgba(0,0,0,.25); }
-  body.returning #spread { padding-bottom: 76px; }
+  .continue { position: fixed; left: 16px; right: 16px; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); justify-content: center; z-index: 15; }
+  body.returning #spread { padding-bottom: 80px; }
+  #room { grid-template-columns: 1fr; grid-template-rows: minmax(0, 58vh) auto; overflow: auto; }
   #proto { bottom: auto; top: calc(10px + env(safe-area-inset-top, 0px)); left: auto; right: 10px; }
+  .chrome .pill { display: none; }
 }
-
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { transition-duration: .01ms !important; transition-delay: 0s !important; }
+  *, *::before, *::after { transition-duration: .01ms !important; }
 }
 </style>
 
-<!-- 인트로: 닫힌 책 -->
+<!-- 인트로: 벽, 회색 제목, WebGL 책 -->
 <div id="intro" aria-hidden="true">
-  <div class="scene">
-    <div class="book" id="book">
-      <div class="block"></div>
-      <div class="leaf" data-i="3"></div>
-      <div class="leaf" data-i="2"></div>
-      <div class="leaf" data-i="1"></div>
-      <div class="cover" id="cover">
-        <div class="cover-front">
-          <div class="title-ko">서양 미술사<span class="title-en">The Story of Art</span></div>
-          <div class="imprint">곰브리치를 따라 걷는 미술사</div>
-        </div>
-        <div class="cover-back"></div>
-      </div>
-    </div>
+  <div class="ghost" id="ghost">
+    <div class="line ko"><span>서양 미술사</span></div>
+    <div class="line en"><span>The Story of Art</span></div>
+    <div class="line by"><span>E. H. Gombrich</span></div>
   </div>
-  <div class="light" id="light"></div>
-  <div class="dim"></div>
+  <canvas id="gl"></canvas>
+  <div class="chrome" id="chrome">
+    <span class="wordmark"><svg viewBox="0 0 200 200" class="em-mark"></svg>The Story of Art</span>
+    <button class="pill" id="skip" type="button" tabindex="-1"><span class="dot"></span>바로 보기</button>
+  </div>
 </div>
 
 <!-- 펼친 양면: 사이트의 첫 화면 -->
 <main id="spread">
   <section class="page left" aria-label="왼쪽 면: 고대에서 르네상스까지">
-    <div class="runhead"><span>서양 미술사</span><span class="latin">The Story of Art</span></div>
+    <div class="runhead" data-r><span class="mark"><svg viewBox="0 0 200 200" class="em-mark" aria-hidden="true"></svg>서양 미술사</span><span class="soft">The Story of Art</span></div>
     <div class="page-body">
-      <div class="intro-note page-note">
+      <div class="page-note" data-r>
         <span class="label">들어가며</span>
-        <blockquote>미술이라는 것은 존재하지 않는다. 다만 미술가들이 있을 뿐이다.</blockquote>
-        <a href="#room-01" data-room="01" data-era="0">곰브리치의 첫 문장부터 읽기</a>
+        <p class="statement">미술이라는 것은 존재하지 않는다. <span class="q">다만 미술가들이 있을 뿐이다.</span></p>
+        <a href="#room-01" data-room="01" data-era="0">곰브리치의 첫 문장부터 읽기 →</a>
       </div>
       <nav aria-label="시대 1부터 4까지"><ol class="eras" id="eras-left"></ol></nav>
     </div>
-    <div class="folio">4</div>
+    <div class="folio" data-r>4</div>
   </section>
   <section class="page right" aria-label="오른쪽 면: 바로크에서 현대까지">
-    <div class="runhead"><span class="latin">E. H. Gombrich</span><span>여덟 개의 시대</span></div>
+    <div class="runhead" data-r><span class="soft">E. H. Gombrich</span><span>여덟 개의 시대</span></div>
     <div class="page-body">
-      <div class="page-note right-head">
+      <div class="page-note right-head" data-r>
         <span class="label">기원전 3만 년부터 오늘까지</span>
-        <p class="right-lead">시대를 누르면 그 안의 방이 펼쳐집니다.</p>
-        <button class="continue" id="continue" type="button">이어서 보기 <b>바로크 · 세 가지 빛</b> →</button>
+        <p class="statement">시대를 누르면 그 안의 방이 펼쳐져요.</p>
+        <button class="pill continue" id="continue" type="button"><span class="dot"></span>이어서 보기 <b>바로크 · 세 가지 빛</b></button>
       </div>
       <nav aria-label="시대 5부터 8까지"><ol class="eras" id="eras-right"></ol></nav>
     </div>
-    <div class="folio">5</div>
+    <div class="folio" data-r>5</div>
   </section>
 </main>
 
-<!-- 방: 확대 전환 데모 -->
+<!-- 방 -->
 <section id="room" hidden aria-live="polite">
-  <figure><img id="room-img" alt=""></figure>
+  <figure id="room-fig"><img id="room-img" alt=""></figure>
   <div class="caption">
-    <span class="r-era" id="room-era"></span>
+    <span class="label r-era" id="room-era"></span>
     <h2 id="room-title" tabindex="-1"></h2>
-    <p>이 방은 아직 준비 중입니다. 시제품에서는 책에서 방으로 들어가는 전환만 보여 드립니다.</p>
-    <button class="back" id="room-back" type="button">← 책으로 돌아가기</button>
+    <p>이 방은 아직 준비 중이에요. 지금은 책에서 방으로 들어가는 전환만 보여 드려요.</p>
+    <button class="pill" id="room-back" type="button"><span class="dot"></span>책으로 돌아가기</button>
   </div>
 </section>
 
@@ -432,12 +316,6 @@ body.returning .continue { display: inline-flex; }
       <div class="seg" role="group" aria-label="방문 상태">
         <button type="button" data-visit="first" aria-pressed="true">처음 온 사람</button>
         <button type="button" data-visit="returning" aria-pressed="false">다시 온 사람</button>
-      </div>
-    </div>
-    <div class="row"><span>표지 색</span>
-      <div class="seg" role="group" aria-label="표지 색">
-        <button type="button" data-cover="ink" aria-pressed="true">먹청</button>
-        <button type="button" data-cover="terra" aria-pressed="false">테라코타</button>
       </div>
     </div>
     <div class="row"><button type="button" id="replay">처음 장면 다시 보기</button></div>
@@ -457,10 +335,12 @@ body.returning .continue { display: inline-flex; }
     <li>클로드 모네, 「인상, 해돋이」, 1872년. 마르모탕 모네 미술관. 퍼블릭 도메인</li>
     <li>바실리 칸딘스키, 「구성 VII」, 1913년. 트레티야코프 미술관. 퍼블릭 도메인</li>
   </ol>
-  <p>이미지는 모두 위키미디어 커먼즈에서 가져와 세부를 잘랐습니다.</p>
-  <form method="dialog"><button>닫기</button></form>
+  <p>이미지는 모두 위키미디어 커먼즈에서 가져와 세부를 잘랐어요.</p>
+  <form method="dialog"><button class="pill" style="padding:9px 16px">닫기</button></form>
 </dialog>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (() => {
   const ERAS = [
@@ -489,26 +369,172 @@ body.returning .continue { display: inline-flex; }
       img: "img/era8.jpg", full: "img/era8-full.jpg", work: "칸딘스키, 구성 VII",
       rooms: [["17", "20세기 전반", "실험적 미술"], ["18", "현대 미술", "끝이 없는 이야기"]] },
   ];
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const hasGsap = !!window.gsap;
 
+  /* ═════════ 엠블럼: 안테미온(팔메트) 메달리온. 200×200 좌표 ═════════ */
+  const D2R = Math.PI / 180;
+  const r2 = n => Math.round(n * 100) / 100;
+  const pol = (cx, cy, r, deg) => [cx + r * Math.cos(deg * D2R), cy + r * Math.sin(deg * D2R)];
+  const toD = (pts, closed) => "M" + pts.map(p => r2(p[0]) + " " + r2(p[1])).join("L") + (closed ? "Z" : "");
+  const mirrorPts = pts => pts.map(([x, y]) => [200 - x, y]);
+  const circleD = (cx, cy, r) => `M${cx - r} ${cy}A${r} ${r} 0 1 0 ${cx + r} ${cy}A${r} ${r} 0 1 0 ${cx - r} ${cy}Z`;
+  function bez(p0, p1, p2, p3, n = 28) {
+    const out = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, u = 1 - t;
+      out.push([
+        u*u*u*p0[0] + 3*u*u*t*p1[0] + 3*u*t*t*p2[0] + t*t*t*p3[0],
+        u*u*u*p0[1] + 3*u*u*t*p1[1] + 3*u*t*t*p2[1] + t*t*t*p3[1]]);
+    }
+    return out;
+  }
+  function spiral(cx, cy, r0, r1, a0, turns, dir, n = 160) {
+    const out = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n;
+      out.push(pol(cx, cy, r0 + (r1 - r0) * Math.pow(t, .9), a0 + dir * 360 * turns * t));
+    }
+    return out;
+  }
+  // 잎: 휘어지는 중심선을 따라 폭을 준다. 바깥선 + 안쪽 음각선(이중 윤곽)
+  function petal(bx, by, ang, L, W, curl, { inner = true, start = 0 } = {}) {
+    const N = 34, ph0 = ang * D2R, ds = L / N;
+    let x = bx + Math.cos(ph0) * start, y = by + Math.sin(ph0) * start;
+    const C = [[x, y, ph0]];
+    for (let k = 1; k <= N; k++) {
+      const um = (k - .5) / N, ph = ph0 + curl * um * um;
+      x += ds * Math.cos(ph); y += ds * Math.sin(ph);
+      C.push([x, y, ph0 + curl * (k / N) * (k / N)]);
+    }
+    const outer = u => u < .66 ? Math.pow(Math.sin(Math.PI / 2 * u / .66), .8) : Math.pow(Math.cos(Math.PI / 2 * (u - .66) / .34), .5);
+    const innerF = u => (u < .2 || u > .86) ? 0 : .4 * Math.pow(Math.sin(Math.PI * (u - .2) / .66), .9);
+    const side = f => {
+      const A = [], B = [];
+      for (let k = 0; k <= N; k++) {
+        const u = k / N, w = W * f(u); if (f === innerF && (u < .2 || u > .86)) continue;
+        const [cx, cy, ph] = C[k], nx = -Math.sin(ph), ny = Math.cos(ph);
+        A.push([cx + nx * w, cy + ny * w]); B.push([cx - nx * w, cy - ny * w]);
+      }
+      return A.concat(B.reverse());
+    };
+    const out = [{ pts: side(outer), closed: true }];
+    if (inner) out.push({ pts: side(innerF), closed: true });
+    return out;
+  }
+  function emblemModel(full = true) {
+    const shapes = [], dots = [], texts = [];
+    const both = list => list.forEach(s => { shapes.push(s); shapes.push({ pts: mirrorPts(s.pts), closed: s.closed }); });
+    const B = [100, 123];
+    // 열한 장의 종려잎
+    for (let k = -5; k <= 5; k++) {
+      const a = Math.abs(k);
+      const L = 58 - a * 2.4 - (a >= 4 ? (a - 3) * 3.6 : 0);
+      const W = 6.6 - a * .22;
+      const curl = k * .045 + Math.sign(k) * (a >= 4 ? (a - 3) * .29 : 0);
+      petal(B[0], B[1], -90 + k * 14.5, L, W, curl, { start: 9, inner: full || a < 4 }).forEach(s => shapes.push(s));
+    }
+    dots.push([100, 50.5, 1.5]);
+    // 꽃받침(하트) 이중선
+    const heartHalf = s => {
+      const c = [100, 123.5], sc = p => [c[0] + (p[0] - c[0]) * s, c[1] + (p[1] - c[1]) * s];
+      const a = bez([100, 131], [88, 131], [84, 120], [90, 114]).map(sc);
+      const b = bez([90, 114], [93, 111], [98, 112], [100, 116]).map(sc);
+      return a.concat(b.slice(1));
+    };
+    [1, .62].forEach(s => { const h = heartHalf(s); shapes.push({ pts: h.concat(mirrorPts(h).reverse()), closed: true }); });
+    // 소용돌이(볼류트) 한 쌍, 이중선
+    both([
+      { pts: bez([100, 131], [93, 139], [82, 142.5], [71, 142]).concat(spiral(71, 129, 13, 2.6, 90, 1.8, 1).slice(1)) },
+      { pts: bez([100, 131], [93, 136.5], [82, 139.4], [71, 139.2]).concat(spiral(71, 129, 10.2, 1.2, 90, 1.62, 1).slice(1)) },
+    ]);
+    dots.push([71, 129, 1.7], [129, 129, 1.7]);
+    // 볼류트에서 돋아나는 아칸서스 싹
+    both([...petal(60, 125.5, 203, 19, 3.9, .75, { inner: full }), ...petal(61.5, 136.5, 160, 13, 3, -.55, { inner: false })]);
+    // 아래로 늘어진 작은 꽃봉오리
+    for (let k = -2; k <= 2; k++) petal(100, 132, 90 + k * 24, 13 - Math.abs(k) * 2.4, 2.7, k * .12, { start: 1.5, inner: false }).forEach(s => shapes.push(s));
+    if (full) {
+      shapes.push({ pts: [[87, 152.5], [113, 152.5]] });
+      dots.push([83.6, 152.5, 1.1], [116.4, 152.5, 1.1]);
+      // 테두리: 이중 링, 구슬·실패(bead and reel), 글자 띠
+      shapes.push({ d: circleD(100, 100, 98) }, { d: circleD(100, 100, 95.4) }, { d: circleD(100, 100, 87.8) }, { d: circleD(100, 100, 71.6) });
+      const n = 44;
+      for (let i = 0; i < n; i++) {
+        const [bx, by] = pol(100, 100, 91.6, i * 360 / n); dots.push([bx, by, 1.45]);
+        const am = (i + .5) * 360 / n, [cx, cy] = pol(100, 100, 91.6, am), pts = [];
+        for (let j = 0; j < 18; j++) {
+          const t = j / 18 * Math.PI * 2, ex = 2.7 * Math.cos(t), ey = 1.0 * Math.sin(t), rot = (am + 90) * D2R;
+          pts.push([cx + ex * Math.cos(rot) - ey * Math.sin(rot), cy + ex * Math.sin(rot) + ey * Math.cos(rot)]);
+        }
+        shapes.push({ pts, closed: true });
+      }
+      [0, 180].forEach(a => {
+        const [x, y] = pol(100, 100, 79.4, a); dots.push([x, y, 1.6]);
+        [-4.2, 4.2].forEach(o => { const [x2, y2] = pol(100, 100, 79.4, a + o); dots.push([x2, y2, .85]); });
+      });
+      texts.push({ str: "THE STORY OF ART", r: 75.6, center: -90, top: true }, { str: "GOMBRICH · MCML", r: 82.6, center: 90, top: false });
+    } else {
+      shapes.push({ d: circleD(100, 100, 96) });
+    }
+    return { shapes: shapes.map(s => s.d ? s : { d: toD(s.pts, s.closed) }), dots, texts };
+  }
+  // 글자를 원호에 한 자씩 배치 (SVG와 캔버스가 같은 계산을 쓴다)
+  const measureCtx = document.createElement("canvas").getContext("2d");
+  const EM_FONT = (px) => `600 ${px}px Cinzel, "Trajan Pro", serif`;
+  function arcLetters(t, size = 8.4, track = 1.5) {
+    measureCtx.font = EM_FONT(100);
+    const ws = [...t.str].map(ch => measureCtx.measureText(ch).width / 100 * size);
+    const total = ws.reduce((a, b) => a + b, 0) + track * (ws.length - 1);
+    let acc = 0;
+    return [...t.str].map((ch, i) => {
+      const mid = acc + ws[i] / 2; acc += ws[i] + track;
+      const off = (mid - total / 2) / t.r / D2R;
+      const ang = t.top ? t.center + off : t.center - off;
+      const [x, y] = pol(100, 100, t.r, ang);
+      return { ch, x, y, rot: t.top ? ang + 90 : ang - 90 };
+    });
+  }
+  function emblemSVG(model, size = 8.4) {
+    let s = model.shapes.map(p => `<path d="${p.d}" fill="none"/>`).join("");
+    s += model.dots.map(([x, y, r]) => `<circle cx="${r2(x)}" cy="${r2(y)}" r="${r}" fill="currentColor" stroke="none"/>`).join("");
+    model.texts.forEach(t => arcLetters(t, size).forEach(l => {
+      s += `<text transform="translate(${r2(l.x)} ${r2(l.y)}) rotate(${r2(l.rot)})" text-anchor="middle" font-family="Cinzel, serif" font-weight="600" font-size="${size}" fill="currentColor" stroke="none">${l.ch}</text>`;
+    }));
+    return `<g stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${s}</g>`;
+  }
+  function drawEmblem(ctx, model, cx, cy, size, { stroke, fill, lw = 1 }) {
+    const k = size / 200;
+    ctx.save();
+    ctx.translate(cx - size / 2, cy - size / 2); ctx.scale(k, k);
+    ctx.strokeStyle = stroke; ctx.fillStyle = fill; ctx.lineWidth = lw; ctx.lineCap = "round"; ctx.lineJoin = "round";
+    model.shapes.forEach(p => ctx.stroke(new Path2D(p.d)));
+    model.dots.forEach(([x, y, r]) => { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); });
+    ctx.font = EM_FONT(8.4); ctx.textAlign = "center"; ctx.textBaseline = "alphabetic";
+    model.texts.forEach(t => arcLetters(t).forEach(l => {
+      ctx.save(); ctx.translate(l.x, l.y); ctx.rotate(l.rot * D2R); ctx.fillText(l.ch, 0, 0); ctx.restore();
+    }));
+    ctx.restore();
+  }
+  const MARK = emblemModel(false);
+  const paintMarks = () => document.querySelectorAll(".em-mark").forEach(svg => { svg.innerHTML = emblemSVG(MARK).replace('stroke-width="1.6"', 'stroke-width="5"'); });
+  paintMarks();
+
+  /* ═════════ 연표 DOM ═════════ */
   const left = document.getElementById("eras-left");
   const right = document.getElementById("eras-right");
   ERAS.forEach((e, i) => {
     const li = document.createElement("li");
-    li.className = "era";
-    li.dataset.i = i;
-    li.style.setProperty("--d-line", (i * 0.11) + "s");
-    li.style.setProperty("--d-img", (0.15 + i * 0.11) + "s");
-    li.style.setProperty("--d-txt", (0.3 + i * 0.11) + "s");
+    li.className = "era"; li.dataset.i = i;
     li.innerHTML = `
       <span class="ribbon" aria-hidden="true"></span>
       <button class="era-btn" type="button" aria-expanded="false" aria-controls="rooms-${i}">
-        <span class="plate"><img src="${e.img}" alt="${e.work}의 세부" loading="${i < 4 ? "eager" : "lazy"}" width="480" height="640"></span>
+        <span class="plate"><img src="${e.img}" alt="${e.work}의 세부" width="480" height="640"></span>
         <span class="tick" aria-hidden="true"></span>
         <span class="era-text">
-          <span class="era-num">${e.n}</span>
-          <span class="era-name" style="display:block">${e.name}</span>
-          <span class="era-date" style="display:block">${e.date}</span>
-          <span class="era-line" style="display:block">${e.line}</span>
+          <span class="era-num">${String(e.n).padStart(2, "0")}</span>
+          <span class="era-name">${e.name}</span>
+          <span class="era-date">${e.date}</span>
+          <span class="era-line">${e.line}</span>
           <span class="progress" aria-hidden="true"><span></span></span>
         </span>
       </button>
@@ -518,149 +544,452 @@ body.returning .continue { display: inline-flex; }
     (i < 4 ? left : right).appendChild(li);
   });
   const eraEls = [...document.querySelectorAll(".era")];
-
-  // 시대 펼치기: 데스크톱은 마우스 올리기 + 클릭, 모바일은 탭
   const hoverable = matchMedia("(hover: hover)").matches;
-  function setOpen(el, open) {
-    el.classList.toggle("open", open);
-    el.querySelector(".era-btn").setAttribute("aria-expanded", String(open));
-  }
+  const setOpen = (el, open) => { el.classList.toggle("open", open); el.querySelector(".era-btn").setAttribute("aria-expanded", String(open)); };
   eraEls.forEach(el => {
-    const btn = el.querySelector(".era-btn");
-    btn.addEventListener("click", () => {
+    el.querySelector(".era-btn").addEventListener("click", () => {
       const open = !el.classList.contains("open");
-      eraEls.forEach(o => o !== el && setOpen(o, false));
-      setOpen(el, open);
+      eraEls.forEach(o => o !== el && setOpen(o, false)); setOpen(el, open);
     });
     if (hoverable) {
-      el.addEventListener("mouseenter", () => { eraEls.forEach(o => setOpen(o, o === el)); });
+      el.addEventListener("mouseenter", () => eraEls.forEach(o => setOpen(o, o === el)));
       el.addEventListener("mouseleave", () => setOpen(el, false));
     }
   });
 
-  // ── 인트로 시퀀스 ──
+  /* ═════════ WebGL 책 ═════════ */
   const intro = document.getElementById("intro");
-  const book = document.getElementById("book");
-  const cover = document.getElementById("cover");
-  const light = document.getElementById("light");
-  const leaves = [...book.querySelectorAll(".leaf")].reverse(); // 맨 위 장부터
+  const glCanvas = document.getElementById("gl");
+  const ghost = document.getElementById("ghost");
+  const chrome = document.getElementById("chrome");
   const spread = document.getElementById("spread");
-  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
-  let timers = [];
-  let playing = false;
-  const at = (ms, fn) => timers.push(setTimeout(fn, ms));
+  const PAPER = "#f6f4ef";
+  const PW = 1.62, PH = 2.36, CW = PW + .035, CH = PH + .05, CT = .026, BT = .15, ZTOP = CT + BT;
+  const FOV = 28, TANH = Math.tan(FOV / 2 * D2R);
+  const isMobile = () => innerWidth <= 760;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const S = { enter: 0, face: 0, cover: 0, pages: [0, 0, 0], zoom: 0, flat: 0, px: 0, py: 0, tx: 0, ty: 0 };
+  let G = null;
 
-  function camera() {
-    const mobile = innerWidth <= 760;
-    const r = book.getBoundingClientRect();
-    const w = r.width, h = r.height;
-    const spreadW = mobile ? w : w * 2;
-    const zoom = Math.max(innerWidth / spreadW, innerHeight / h) * 1.06;
-    book.style.setProperty("--zoom", zoom.toFixed(3));
-    book.style.setProperty("--tx", (mobile ? 0 : w / 2) + "px");
+  const startDist = () => {
+    const a = innerWidth / innerHeight;
+    return Math.max(CH / ((isMobile() ? .46 : .55) * 2 * TANH), CW / ((isMobile() ? .58 : .5) * 2 * TANH * a));
+  };
+  const endDist = () => {
+    const a = innerWidth / innerHeight, TW = isMobile() ? PW : 2 * PW;
+    return Math.min(PH / (2 * TANH), TW / (2 * TANH * a)) * .985;
+  };
+  function layoutGhost() {
+    const bh = CH / (2 * startDist() * TANH) * innerHeight;
+    intro.style.setProperty("--bh", bh.toFixed(1) + "px");
+    // 책등 그림자 폭: WebGL 종이의 띠(페이지 폭의 5.5%)와 같은 화면 폭
+    const pxPerUnit = innerHeight / (2 * endDist() * TANH);
+    document.documentElement.style.setProperty("--gutter", (PW * .055 * pxPerUnit).toFixed(1) + "px");
   }
 
-  function resetIntro() {
-    timers.forEach(clearTimeout); timers = [];
-    intro.classList.remove("gone", "pushing");
-    book.classList.remove("push"); cover.classList.remove("open"); light.classList.remove("on");
-    leaves.forEach(l => l.classList.remove("turn"));
-    spread.classList.remove("reveal"); spread.classList.add("pre");
+  function makeCanvas(w, h, draw) { const c = document.createElement("canvas"); c.width = w; c.height = h; draw(c.getContext("2d"), w, h); return c; }
+  function paperBase(ctx, w, h, seed = 1) {
+    ctx.fillStyle = PAPER; ctx.fillRect(0, 0, w, h);
+    let s = seed * 9301;
+    const rnd = () => (s = (s * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < w * h / 900; i++) {
+      ctx.fillStyle = rnd() > .5 ? "rgba(120,105,80,.035)" : "rgba(255,255,255,.05)";
+      ctx.fillRect(rnd() * w, rnd() * h, 1 + rnd() * 1.5, 1 + rnd() * 1.5);
+    }
+  }
+  function gutter(ctx, w, h, side) {
+    const band = w * .055, x0 = side === "left" ? 0 : w, x1 = side === "left" ? band : w - band;
+    const g = ctx.createLinearGradient(x0, 0, x1, 0);
+    g.addColorStop(0, "rgba(70,60,45,.15)"); g.addColorStop(.16, "rgba(70,60,45,.075)");
+    g.addColorStop(.4, "rgba(70,60,45,.035)"); g.addColorStop(1, "rgba(70,60,45,0)");
+    ctx.fillStyle = g; ctx.fillRect(Math.min(x0, x1), 0, band, h);
+  }
+  function setFont(ctx, spec, { stretch = "normal", spacing = "0px" } = {}) {
+    ctx.font = spec;
+    if ("fontStretch" in ctx) ctx.fontStretch = stretch;
+    if ("letterSpacing" in ctx) ctx.letterSpacing = spacing;
   }
 
-  function revealSpread() {
-    spread.classList.add("reveal");
-    requestAnimationFrame(() => requestAnimationFrame(() => spread.classList.remove("pre")));
+  async function initGL() {
+    if (!window.THREE) throw new Error("three.js 없음");
+    const renderer = new THREE.WebGLRenderer({ canvas: glCanvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+    renderer.setSize(innerWidth, innerHeight, false);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.VSMShadowMap;
+    const maxAniso = renderer.capabilities.getMaxAnisotropy();
+    const tex = (canvas, mirror) => {
+      const t = new THREE.CanvasTexture(canvas);
+      t.encoding = THREE.sRGBEncoding; t.anisotropy = maxAniso;
+      if (mirror) { t.wrapS = THREE.RepeatWrapping; t.repeat.x = -1; t.offset.x = 1; }
+      return t;
+    };
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(FOV, innerWidth / innerHeight, .1, 60);
+
+    // 조명: 왼쪽 위 스포트라이트(그라데이션과 그림자) + 반구광
+    const hemi = new THREE.HemisphereLight(0xffffff, 0xe6e0d4, .6);
+    scene.add(hemi);
+    const spot = new THREE.SpotLight(0xffffff, .62, 0, .62, 1, 1);
+    spot.position.set(-3.4, 4.4, 7.2);
+    spot.target.position.set(.4, -.3, 0);
+    spot.castShadow = true;
+    spot.shadow.mapSize.set(2048, 2048);
+    spot.shadow.camera.near = 3; spot.shadow.camera.far = 20;
+    spot.shadow.radius = 24; spot.shadow.bias = -.0006;
+    scene.add(spot, spot.target);
+
+    // 벽: 그림자만 받는 투명 면
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: .11 }));
+    wall.position.z = -.55; wall.receiveShadow = true; scene.add(wall);
+    // 벽에 번지는 부드러운 그늘 (앰비언트 오클루전 흉내)
+    const blobTex = tex(makeCanvas(256, 256, (c, w, h) => {
+      const g = c.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+      g.addColorStop(0, "rgba(60,50,35,.55)"); g.addColorStop(.55, "rgba(60,50,35,.2)"); g.addColorStop(1, "rgba(60,50,35,0)");
+      c.fillStyle = g; c.fillRect(0, 0, w, h);
+    }));
+    const blob = new THREE.Mesh(new THREE.PlaneGeometry(CW * 1.7, CH * 1.45), new THREE.MeshBasicMaterial({ map: blobTex, transparent: true, opacity: 0, depthWrite: false }));
+    blob.position.z = -.54; scene.add(blob);
+
+    // ── 텍스처 ──
+    const FULL = emblemModel(true);
+    const cw = 1400, ch = Math.round(cw * CH / CW);
+    const emSize = cw * .6, emX = cw / 2, emY = ch * .45;
+    const coverMap = tex(makeCanvas(cw, ch, (c, w, h) => {
+      c.fillStyle = "#fbfaf7"; c.fillRect(0, 0, w, h);
+      drawEmblem(c, FULL, emX, emY, emSize, { stroke: "rgba(150,142,128,.3)", fill: "rgba(150,142,128,.3)", lw: 1.05 });
+    }));
+    // 음각: 높이 지도를 그리고 소벨 필터로 노멀 맵을 만든다
+    const heightC = makeCanvas(cw, ch, (c, w, h) => {
+      c.fillStyle = "rgb(128,128,128)"; c.fillRect(0, 0, w, h);
+      c.filter = "blur(" + (emSize / 200 * .55).toFixed(1) + "px)";
+      drawEmblem(c, FULL, emX, emY, emSize, { stroke: "rgb(30,30,30)", fill: "rgb(30,30,30)", lw: 1.3 });
+      c.filter = "none";
+    });
+    const normalC = (() => {
+      const w = heightC.width, h = heightC.height;
+      const src = heightC.getContext("2d").getImageData(0, 0, w, h).data;
+      const out = document.createElement("canvas"); out.width = w; out.height = h;
+      const octx = out.getContext("2d"), img = octx.createImageData(w, h), d = img.data;
+      const H = new Float32Array(w * h);
+      let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+      for (let i = 0; i < w * h; i++) H[i] = src[i * 4] / 255 + (rnd() - .5) * .018;   // 종이 결
+      const k = 15;
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const i = y * w + x;
+        const l = H[y * w + Math.max(0, x - 1)], r = H[y * w + Math.min(w - 1, x + 1)];
+        const u = H[Math.max(0, y - 1) * w + x], dn = H[Math.min(h - 1, y + 1) * w + x];
+        let nx = -(r - l) * k, ny = (dn - u) * k, nz = 1;
+        const len = Math.hypot(nx, ny, nz); nx /= len; ny /= len; nz /= len;
+        d[i * 4] = (nx * .5 + .5) * 255; d[i * 4 + 1] = (ny * .5 + .5) * 255; d[i * 4 + 2] = (nz * .5 + .5) * 255; d[i * 4 + 3] = 255;
+      }
+      octx.putImageData(img, 0, 0);
+      return out;
+    })();
+    const coverNormal = new THREE.CanvasTexture(normalC); coverNormal.anisotropy = maxAniso;
+
+    // 면지: 작은 팔메트를 엇갈려 찍은 무늬
+    const endpaper = tex(makeCanvas(1024, Math.round(1024 * CH / CW), (c, w, h) => {
+      c.fillStyle = "#f1eee7"; c.fillRect(0, 0, w, h);
+      const step = 150;
+      for (let row = -1, y = 0; y < h + step; row++, y += step * .8) {
+        for (let x = (row % 2 ? step / 2 : 0); x < w + step; x += step) drawEmblem(c, MARK, x, y, 92, { stroke: "rgba(165,155,137,.45)", fill: "rgba(165,155,137,.45)", lw: 3.2 });
+      }
+    }));
+    const pw = 1024, ph = Math.round(pw * PH / PW);
+    const art = new Image(); art.src = "img/era4.jpg";
+    await Promise.race([art.decode().catch(() => {}), new Promise(r => setTimeout(r, 1500))]);
+    const pages = [
+      { // 1장 앞: 약표제지
+        recto: (c, w, h) => {
+          paperBase(c, w, h, 2); gutter(c, w, h, "left");
+          drawEmblem(c, MARK, w / 2, h * .4, w * .13, { stroke: "#b3ada1", fill: "#b3ada1", lw: 4 });
+          c.fillStyle = "#3a3733"; c.textAlign = "center";
+          setFont(c, `900 ${w * .05}px Archivo`, { stretch: "extra-condensed" }); c.fillText("THE STORY OF ART", w / 2, h * .5);
+        },
+        // 1장 뒤: 권두화
+        verso: (c, w, h) => {
+          paperBase(c, w, h, 3); gutter(c, w, h, "right");
+          const iw = w * .6, ih = iw * 4 / 3, ix = (w - iw) / 2, iy = h * .17;
+          if (art.complete && art.naturalWidth) { c.globalCompositeOperation = "multiply"; c.drawImage(art, ix, iy, iw, ih); c.globalCompositeOperation = "source-over"; }
+          else { c.fillStyle = "#e5e0d6"; c.fillRect(ix, iy, iw, ih); }
+          c.fillStyle = "#8a857c"; c.textAlign = "center";
+          setFont(c, `500 ${w * .021}px "Noto Sans KR"`);
+          c.fillText("얀 반 에이크, 「아르놀피니 부부의 초상」 부분, 1434년", w / 2, iy + ih + w * .06);
+        } },
+      { // 2장 앞: 표제지
+        recto: (c, w, h) => {
+          paperBase(c, w, h, 4); gutter(c, w, h, "left");
+          c.fillStyle = "#141311"; c.textAlign = "center";
+          setFont(c, `400 ${w * .125}px "Black Han Sans"`); c.fillText("서양 미술사", w / 2, h * .25);
+          setFont(c, `900 ${w * .108}px Archivo`, { stretch: "extra-condensed" }); c.fillText("THE STORY OF ART", w / 2, h * .25 + w * .13);
+          setFont(c, `600 ${w * .022}px "Inter Tight"`, { spacing: (w * .007).toFixed(1) + "px" }); c.fillText("E. H. GOMBRICH", w / 2, h * .25 + w * .2);
+          drawEmblem(c, FULL, w / 2, h * .64, w * .36, { stroke: "#57534c", fill: "#57534c", lw: 1.3 });
+        },
+        // 2장 뒤: 판권
+        verso: (c, w, h) => {
+          paperBase(c, w, h, 5); gutter(c, w, h, "right");
+          c.fillStyle = "#8a857c"; c.textAlign = "left";
+          setFont(c, `500 ${w * .022}px "Noto Sans KR"`);
+          ["E. H. 곰브리치, 『서양 미술사』", "The Story of Art · 초판 1950 · 제16판 1995", "", "이 사이트는 곰브리치의 책을 따라 걷는", "도슨트 투어예요."]
+            .forEach((s, i) => c.fillText(s, w * .12, h * .78 + i * w * .036));
+        } },
+      { // 3장 앞: 차례
+        recto: (c, w, h) => {
+          paperBase(c, w, h, 6); gutter(c, w, h, "left");
+          const x0 = w * .14, x1 = w * .88; let y = h * .16;
+          c.fillStyle = "#141311"; c.textAlign = "left";
+          setFont(c, `600 ${w * .02}px "Inter Tight"`, { spacing: "2px" }); c.fillText("CONTENTS", x0, y);
+          setFont(c, `700 ${w * .06}px "Noto Sans KR"`, { spacing: (-w * .002).toFixed(1) + "px" }); c.fillText("차례", x0, y + w * .08);
+          y += w * .17;
+          ERAS.forEach(e => {
+            c.fillStyle = "rgba(20,19,17,.16)"; c.fillRect(x0, y - w * .047, x1 - x0, 1.5);
+            c.fillStyle = "#141311";
+            setFont(c, `900 ${w * .046}px Archivo`, { stretch: "extra-condensed" }); c.fillText(String(e.n).padStart(2, "0"), x0, y);
+            setFont(c, `700 ${w * .028}px "Noto Sans KR"`, { spacing: (-w * .0008).toFixed(1) + "px" }); c.fillText(e.name, x0 + w * .1, y);
+            c.fillStyle = "#8a857c"; c.textAlign = "right";
+            setFont(c, `500 ${w * .02}px "Inter Tight", "Noto Sans KR"`); c.fillText(e.date, x1, y);
+            c.textAlign = "left"; y += w * .094;
+          });
+        },
+        verso: (c, w, h) => { paperBase(c, w, h, 7); gutter(c, w, h, "right"); } },
+    ];
+    const blockTop = tex(makeCanvas(pw, ph, (c, w, h) => { paperBase(c, w, h, 8); gutter(c, w, h, "left"); }));
+    const edge = (vertical) => tex(makeCanvas(vertical ? 512 : 64, vertical ? 64 : 512, (c, w, h) => {
+      c.fillStyle = "#efece5"; c.fillRect(0, 0, w, h);
+      const n = vertical ? w : h;
+      for (let i = 0; i < n; i += 2) { c.fillStyle = `rgba(120,108,88,${.08 + Math.random() * .1})`; vertical ? c.fillRect(i, 0, 1, h) : c.fillRect(0, i, w, 1); }
+    }));
+
+    // ── 책 ──
+    const pose = new THREE.Group(); scene.add(pose);
+    const root = new THREE.Group(); pose.add(root);
+    const board = new THREE.MeshStandardMaterial({ color: 0xf3f1ec, roughness: .85 });
+    const back = new THREE.Mesh(new THREE.BoxGeometry(CW, CH, CT), [board, board, board, board, new THREE.MeshStandardMaterial({ map: endpaper, roughness: .9 }), board]);
+    back.position.set(CW / 2, 0, CT / 2);
+    const edgeV = edge(true), edgeH = edge(false);
+    const paperMat = (map) => new THREE.MeshStandardMaterial({ map, roughness: .93 });
+    const block = new THREE.Mesh(new THREE.BoxGeometry(PW, PH, BT), [
+      paperMat(edgeH), paperMat(edgeH), paperMat(edgeV), paperMat(edgeV), paperMat(blockTop), board]);
+    block.position.set(PW / 2, 0, CT + BT / 2);
+    const spine = new THREE.Mesh(new THREE.BoxGeometry(CT, CH, ZTOP), board);
+    spine.position.set(-CT / 2, 0, ZTOP / 2);
+    const coverPivot = new THREE.Group(); coverPivot.position.set(0, 0, ZTOP + .0025);
+    const coverMat = new THREE.MeshStandardMaterial({ map: coverMap, normalMap: coverNormal, normalScale: new THREE.Vector2(1, 1), roughness: .8 });
+    const cover = new THREE.Mesh(new THREE.BoxGeometry(CW, CH, CT), [board, board, board, board, coverMat, new THREE.MeshStandardMaterial({ map: endpaper, roughness: .9 })]);
+    cover.position.set(CW / 2, 0, CT / 2);
+    coverPivot.add(cover);
+    root.add(back, block, spine, coverPivot);
+    [back, block, spine, cover].forEach(m => { m.castShadow = true; m.receiveShadow = true; });
+
+    // 넘어가는 낱장: 책등에서부터 각도를 적분해 휘는 종이(길이 보존)
+    const GX = 44, GY = 10;
+    const pageObjs = pages.map((p, i) => {
+      const geo = new THREE.PlaneGeometry(PW, PH, GX, GY); geo.translate(PW / 2, 0, 0);
+      const front = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex(makeCanvas(pw, ph, p.recto)), roughness: .93, side: THREE.FrontSide }));
+      const backM = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex(makeCanvas(pw, ph, p.verso), true), roughness: .93, side: THREE.BackSide }));
+      const g = new THREE.Group(); g.add(front, backM);
+      [front, backM].forEach(m => { m.castShadow = true; m.receiveShadow = true; });
+      root.add(g);
+      return { g, geo, last: -1, zR: ZTOP + .0016 - i * .0004, zL: ZTOP + .0045 + i * .0012 };
+    });
+    function bendPage(o, t) {
+      if (o.last === t) return; o.last = t;
+      const pos = o.geo.attributes.position.array, ds = PW / GX;
+      const sn = Math.sin(Math.PI * t), th = Math.PI * t;
+      const bend = 1.15 * sn * (1 - 1.5 * t), diag = .34 * sn;
+      for (let iy = 0; iy <= GY; iy++) {
+        const yN = 1 - 2 * iy / GY;       // 위 1 → 아래 -1
+        let x = 0, z = 0, idx = iy * (GX + 1);
+        pos[idx * 3] = 0; pos[idx * 3 + 2] = 0;
+        for (let ix = 1; ix <= GX; ix++) {
+          const s = (ix - .5) / GX, a = th + (bend - diag * yN) * s * s;
+          x += ds * Math.cos(a); z += ds * Math.sin(a);
+          pos[(idx + ix) * 3] = x; pos[(idx + ix) * 3 + 2] = z;
+        }
+      }
+      o.geo.attributes.position.needsUpdate = true;
+      o.geo.computeVertexNormals();
+      const e = t * t * (3 - 2 * t);
+      o.g.position.z = lerp(o.zR, o.zL, e);
+    }
+    pageObjs.forEach(o => bendPage(o, 0));
+
+    const ground = new THREE.Color(0xe6e0d4), white = new THREE.Color(0xffffff);
+    function render() {
+      const mob = isMobile();
+      S.px += (S.tx - S.px) * .06; S.py += (S.ty - S.py) * .06;
+      const free = 1 - S.face;
+      pose.rotation.y = lerp(-.36, 0, S.face) + S.px * .1 * free;
+      pose.rotation.x = lerp(.05, 0, S.face) - S.py * .06 * free;
+      pose.rotation.z = lerp(-.012, 0, S.face);
+      pose.position.y = lerp(-.32, 0, S.enter);
+      root.position.x = lerp(-CW / 2, mob ? -PW / 2 : 0, S.face);
+      coverPivot.rotation.y = -Math.PI * S.cover;
+      pageObjs.forEach((o, i) => bendPage(o, S.pages[i]));
+      blob.material.opacity = .32 * S.enter * (1 - S.zoom);
+      blob.position.x = root.position.x + CW / 2 + .14 - S.cover * CW / 2; blob.position.y = -.1;
+      const d = lerp(startDist(), endDist(), S.zoom);
+      camera.aspect = innerWidth / innerHeight;
+      camera.position.set(0, lerp(.06, 0, S.zoom), ZTOP + d);
+      camera.lookAt(0, 0, ZTOP);
+      camera.updateProjectionMatrix();
+      hemi.intensity = lerp(.6, 1, S.flat);
+      hemi.groundColor.copy(ground).lerp(white, S.flat);
+      spot.intensity = lerp(.62, 0, S.flat);
+      wall.material.opacity = .11 * (1 - S.flat);
+      renderer.render(scene, camera);
+    }
+    function resize() { renderer.setSize(innerWidth, innerHeight, false); layoutGhost(); }
+    return { render, resize, renderer };
+  }
+
+  /* ═════════ 인트로 시퀀스 ═════════ */
+  let tl = null, playing = false, ticking = false;
+  const tick = () => G && G.render();
+  function startTicker() { if (!ticking && G && hasGsap) { gsap.ticker.add(tick); ticking = true; } }
+  function stopTicker() { if (ticking) { gsap.ticker.remove(tick); ticking = false; } }
+  addEventListener("pointermove", e => { S.tx = e.clientX / innerWidth - .5; S.ty = e.clientY / innerHeight - .5; }, { passive: true });
+
+  function resetState() {
+    Object.assign(S, { enter: 0, face: 0, cover: 0, pages: [0, 0, 0], zoom: 0, flat: 0 });
+  }
+  function revealSpread(quick) {
+    const items = [...spread.querySelectorAll("[data-r], .era")];
+    if (!hasGsap || reduce) return;
+    gsap.killTweensOf(items);
+    if (quick) { gsap.set(items, { clearProps: "all" }); return; }
+    gsap.fromTo(spread.querySelectorAll("[data-r]"), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: "expo.out", stagger: .06, clearProps: "all" });
+    eraEls.forEach((el, i) => {
+      const d = .12 + i * .07;
+      gsap.fromTo(el.querySelector(".tick"), { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: .6, ease: "power2.inOut", delay: d, clearProps: "clipPath" });
+      gsap.fromTo(el.querySelector(".plate img"), { clipPath: "inset(100% 0 0 0)", scale: 1.25 }, { clipPath: "inset(0% 0 0 0)", scale: 1, duration: 1.1, ease: "expo.out", delay: d + .1, clearProps: "clipPath,transform,scale" });
+      gsap.fromTo(el.querySelector(".era-text"), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: .9, ease: "expo.out", delay: d + .22, clearProps: "all" });
+    });
     if (document.body.classList.contains("returning")) dropRibbon();
   }
-
-  function finish() {            // 건너뛰기: 즉시 마지막 상태로
-    if (!playing) return;
+  function endIntro(quick) {
     playing = false;
-    timers.forEach(clearTimeout); timers = [];
-    intro.classList.add("gone");
-    spread.classList.remove("pre");
-    spread.classList.remove("reveal");
-    if (document.body.classList.contains("returning")) dropRibbon();
     detachSkip();
+    const done = () => { intro.hidden = true; stopTicker(); document.documentElement.classList.remove("intro-on"); };
+    if (!hasGsap || quick) { done(); revealSpread(!hasGsap); return; }
+    gsap.to(intro, { opacity: 0, duration: .55, ease: "power1.inOut", onComplete: done });
+    revealSpread(false);
   }
 
   function playIntro() {
-    resetIntro();
-    playing = true;
-    attachSkip();
-    if (reduce) { at(500, () => { intro.classList.add("gone"); revealSpread(); playing = false; detachSkip(); }); return; }
-    camera();
-    at(60, () => light.classList.add("on"));
-    at(1100, () => cover.classList.add("open"));
-    at(1450, () => { book.classList.add("push"); intro.classList.add("pushing"); });
-    leaves.forEach((l, i) => at(1650 + i * 120, () => l.classList.add("turn")));
-    at(2650, () => { intro.classList.add("gone"); revealSpread(); });
-    at(3800, () => { playing = false; detachSkip(); });
+    if (tl) tl.kill();
+    resetState();
+    intro.hidden = false; intro.style.opacity = 1;
+    document.documentElement.classList.add("intro-on");
+    gsap.set([ghost, chrome], { clearProps: "all" });
+    playing = true; attachSkip();
+    layoutGhost();
+    const lines = ghost.querySelectorAll(".line > span");
+    if (!G || reduce) {   // WebGL이 없거나 움직임 줄이기: 글자만 보여 주고 넘어간다
+      glCanvas.style.display = G ? "" : "none";
+      if (G) { S.enter = 1; G.render(); }
+      tl = gsap.timeline({ onComplete: () => endIntro(false) });
+      tl.from(lines, { yPercent: reduce ? 0 : 110, opacity: reduce ? 0 : 1, duration: 1, ease: "expo.out", stagger: .08 })
+        .to({}, { duration: .9 });
+      return;
+    }
+    startTicker();
+    tl = gsap.timeline({ onComplete: () => endIntro(false) });
+    tl.from(lines, { yPercent: 112, duration: 1.25, ease: "expo.out", stagger: .09 }, 0)
+      .from(chrome, { opacity: 0, duration: .8 }, .3)
+      .fromTo(glCanvas, { opacity: 0 }, { opacity: 1, duration: .9, ease: "power1.out" }, .25)
+      .to(S, { enter: 1, duration: 1.6, ease: "expo.out" }, .25)
+      .to(S, { face: 1, duration: 1.5, ease: "power3.inOut" }, 1.55)
+      .to(S, { cover: 1, duration: 1.45, ease: "power3.inOut" }, 1.75)
+      .to(S.pages, { 0: 1, duration: 1.15, ease: "power2.inOut" }, 2.55)
+      .to(S.pages, { 1: 1, duration: 1.15, ease: "power2.inOut" }, 2.76)
+      .to(S.pages, { 2: 1, duration: 1.15, ease: "power2.inOut" }, 2.97)
+      .to(S, { zoom: 1, duration: 2.0, ease: "power3.inOut" }, 2.25)
+      .to(ghost, { scale: 1.18, opacity: 0, filter: "blur(8px)", duration: 1.3, ease: "power2.in" }, 2.1)
+      .to(chrome, { opacity: 0, duration: .5 }, 2.2)
+      .to(S, { flat: 1, duration: .6, ease: "power1.inOut" }, 3.65);
+    if (window.__pauseIntro) { tl.pause(); stopTicker(); }   // 화면 확인용
   }
-
-  function returningEntry() {    // 다시 온 사람: 애니메이션 없이, 책갈피만 떨어진다
-    resetIntro();
-    intro.classList.add("gone");
-    spread.classList.remove("pre");
-    dropRibbon();
+  function finish() {
+    if (!playing) return;
+    if (tl) tl.kill();
+    endIntro(false);
   }
-
-  function dropRibbon() {
-    const r = document.querySelector(".era.current .ribbon");
-    if (!r) return;
-    r.classList.remove("in");
-    requestAnimationFrame(() => requestAnimationFrame(() => r.classList.add("in")));
-  }
-
   const skipEvents = ["pointerdown", "wheel", "keydown", "touchstart"];
   function attachSkip() { skipEvents.forEach(ev => addEventListener(ev, finish, { passive: true })); }
   function detachSkip() { skipEvents.forEach(ev => removeEventListener(ev, finish)); }
 
-  // ── 방 입장: 세부가 그대로 커져 방의 첫 화면이 된다 ──
+  function dropRibbon() {
+    const r = document.querySelector(".era.current .ribbon");
+    if (!r || !hasGsap) return;
+    gsap.fromTo(r, { yPercent: -120 }, { yPercent: 0, duration: 1, ease: "expo.out", delay: .3 });
+  }
+  function returningEntry() {
+    if (tl) tl.kill();
+    playing = false; detachSkip(); stopTicker();
+    intro.hidden = true; document.documentElement.classList.remove("intro-on");
+    revealSpread(false);
+  }
+
+  /* ═════════ 방 입장: 세부 도판이 날아가 방의 그림이 된다 ═════════ */
   const room = document.getElementById("room");
   const roomImg = document.getElementById("room-img");
-  let lastPlate = null;
-  function enterRoom(eraIndex, roomTitle) {
-    const e = ERAS[eraIndex] || ERAS[0];
-    const plateImg = eraEls[eraIndex] ? eraEls[eraIndex].querySelector(".plate img") : null;
-    lastPlate = plateImg;
-    document.getElementById("room-era").textContent = eraIndex >= 0 ? `${e.n} · ${e.name}` : "들어가며";
-    document.getElementById("room-title").textContent = roomTitle;
+  const roomFig = document.getElementById("room-fig");
+  let lastEra = -1, roomBusy = false;
+  function flyBox(img, full) {
+    const f = document.createElement("div"); f.className = "fly";
+    f.innerHTML = `<img src="${img}" alt=""><img class="full" src="${full}" alt="">`;
+    document.body.appendChild(f); return f;
+  }
+  const rectOf = el => { const r = el.getBoundingClientRect(); return { left: r.left, top: r.top, width: r.width, height: r.height }; };
+  function enterRoom(i, title) {
+    if (roomBusy) return;
+    const e = ERAS[i] || ERAS[0]; lastEra = i;
+    document.getElementById("room-era").textContent = i >= 0 ? `${String(e.n).padStart(2, "0")} · ${e.name}` : "들어가며";
+    document.getElementById("room-title").textContent = title;
     roomImg.src = e.full; roomImg.alt = e.work;
-    if (!plateImg || reduce) { room.hidden = false; document.getElementById("room-title").focus(); return; }
-    const r = plateImg.getBoundingClientRect();
-    const z = document.createElement("img");
-    z.id = "zoom"; z.src = e.img; z.alt = "";
-    Object.assign(z.style, { left: r.left + "px", top: r.top + "px", width: r.width + "px", height: r.height + "px" });
-    document.body.appendChild(z);
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      Object.assign(z.style, { left: "0px", top: "0px", width: innerWidth + "px", height: innerHeight + "px" });
-    }));
-    setTimeout(() => {
-      room.hidden = false; room.style.opacity = 0;
-      requestAnimationFrame(() => { room.style.transition = "opacity .35s ease"; room.style.opacity = 1; });
-      setTimeout(() => z.remove(), 380);
-      document.getElementById("room-title").focus({ preventScroll: true });
-    }, 600);
+    room.hidden = false;
+    const plate = eraEls[i] && eraEls[i].querySelector(".plate");
+    const caption = room.querySelectorAll(".caption > *");
+    if (!plate || reduce || !hasGsap) { document.getElementById("room-title").focus({ preventScroll: true }); return; }
+    roomBusy = true;
+    const from = rectOf(plate), to = rectOf(roomFig);
+    const f = flyBox(e.img, e.full);
+    gsap.set(f, from); gsap.set(roomImg, { opacity: 0 });
+    gsap.timeline({ onComplete: () => { gsap.set(roomImg, { opacity: 1 }); f.remove(); roomBusy = false; document.getElementById("room-title").focus({ preventScroll: true }); } })
+      .fromTo(room, { opacity: 0 }, { opacity: 1, duration: .7, ease: "power2.inOut" }, 0)
+      .to(f, { ...to, duration: 1.05, ease: "expo.inOut" }, 0)
+      .to(f.querySelector(".full"), { opacity: 1, duration: .55, ease: "power1.inOut" }, .3)
+      .fromTo(caption, { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: .9, ease: "expo.out", stagger: .07 }, .55);
   }
   function leaveRoom() {
-    room.hidden = true; room.style.opacity = "";
-    if (lastPlate) lastPlate.closest(".era-btn").focus({ preventScroll: true });
+    if (roomBusy || room.hidden) return;
+    const plate = eraEls[lastEra] && eraEls[lastEra].querySelector(".plate");
+    if (!plate || reduce || !hasGsap) { room.hidden = true; return; }
+    roomBusy = true;
+    const e = ERAS[lastEra];
+    const f = flyBox(e.img, e.full);
+    gsap.set(f, rectOf(roomFig)); gsap.set(f.querySelector(".full"), { opacity: 1 }); gsap.set(roomImg, { opacity: 0 });
+    gsap.timeline({ onComplete: () => { f.remove(); room.hidden = true; gsap.set([room, roomImg], { clearProps: "opacity" }); roomBusy = false; plate.closest(".era-btn").focus({ preventScroll: true }); } })
+      .to(room.querySelectorAll(".caption > *"), { y: -12, opacity: 0, duration: .35, ease: "power2.in", stagger: .03 }, 0)
+      .to(room, { opacity: 0, duration: .6, ease: "power2.inOut" }, .1)
+      .to(f, { ...rectOf(plate), duration: .95, ease: "expo.inOut" }, .05)
+      .to(f.querySelector(".full"), { opacity: 0, duration: .5 }, .25);
   }
   document.addEventListener("click", ev => {
     const a = ev.target.closest("a[data-room]");
     if (!a) return;
     ev.preventDefault();
-    const eraIndex = Number(a.dataset.era);
-    const title = a.childNodes[0].textContent.trim();
-    enterRoom(a.dataset.room === "01" ? -1 : eraIndex, title);
+    enterRoom(a.dataset.room === "01" ? -1 : Number(a.dataset.era), a.childNodes[0].textContent.trim().replace(" →", ""));
   });
   document.getElementById("room-back").addEventListener("click", leaveRoom);
-  addEventListener("keydown", ev => { if (ev.key === "Escape" && !room.hidden) leaveRoom(); });
+  addEventListener("keydown", ev => { if (ev.key === "Escape") leaveRoom(); });
   document.getElementById("continue").addEventListener("click", () => enterRoom(4, "바로크"));
 
-  // ── 시제품 설정 ──
+  /* ═════════ 시제품 설정 ═════════ */
   function setVisit(v) {
     document.querySelectorAll("[data-visit]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.visit === v)));
     const ret = v === "returning";
@@ -669,26 +998,27 @@ body.returning .continue { display: inline-flex; }
     if (ret) returningEntry(); else playIntro();
   }
   document.querySelectorAll("[data-visit]").forEach(b => b.addEventListener("click", ev => { ev.stopPropagation(); setVisit(b.dataset.visit); }));
-  document.querySelectorAll("[data-cover]").forEach(b => b.addEventListener("click", ev => {
-    ev.stopPropagation();
-    document.querySelectorAll("[data-cover]").forEach(x => x.setAttribute("aria-pressed", String(x === b)));
-    if (b.dataset.cover === "terra") document.documentElement.dataset.cover = "terra";
-    else delete document.documentElement.dataset.cover;
-    document.querySelector('[data-visit="first"]').click();   // 표지를 다시 보여 준다
-  }));
-  document.getElementById("replay").addEventListener("click", ev => { ev.stopPropagation(); document.querySelector('[data-visit="first"]').click(); });
+  document.getElementById("replay").addEventListener("click", ev => { ev.stopPropagation(); setVisit("first"); });
   document.getElementById("proto").addEventListener("pointerdown", ev => ev.stopPropagation());
+  document.getElementById("skip").addEventListener("click", finish);
   const credits = document.getElementById("credits");
   document.getElementById("credits-open").addEventListener("click", ev => {
     ev.preventDefault(); ev.stopPropagation();
     if (credits.showModal) credits.showModal(); else credits.setAttribute("open", "");
   });
+  addEventListener("resize", () => { layoutGhost(); if (G) { G.resize(); if (!ticking && !intro.hidden) G.render(); } });
 
-  addEventListener("resize", () => { if (playing) camera(); });
-
-  // 시작: 폰트를 기다렸다가(최대 0.8초) 책을 연다
-  const go = () => playIntro();
-  spread.classList.add("pre");
-  Promise.race([document.fonts ? document.fonts.ready : Promise.resolve(), new Promise(r => setTimeout(r, 800))]).then(go);
+  /* ═════════ 시작 ═════════ */
+  const fontsReady = Promise.all([
+    "400 40px 'Black Han Sans'", "900 40px Archivo", "600 40px Cinzel", "600 40px 'Inter Tight'", "700 40px 'Noto Sans KR'", "500 40px 'Noto Sans KR'",
+  ].map(f => document.fonts ? document.fonts.load(f, "서양미술사ABC").catch(() => {}) : null));
+  layoutGhost();
+  if (!hasGsap) { intro.hidden = true; return; }
+  document.documentElement.classList.add("intro-on");
+  gsap.set(glCanvas, { opacity: 0 });
+  Promise.race([fontsReady, new Promise(r => setTimeout(r, 2500))])
+    .then(() => { paintMarks(); return initGL().then(g => { G = g; }).catch(err => { console.warn("WebGL 책을 만들지 못했어요:", err); }); })
+    .then(() => playIntro());
+  window.__intro = { get tl() { return tl; }, S, render: () => G && G.render() };
 })();
 </script>
