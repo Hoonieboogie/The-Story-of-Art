@@ -46,13 +46,13 @@ button { font: inherit; color: inherit; }
 #intro[hidden] { display: none !important; }
 #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .ghost { position: absolute; inset: 0; pointer-events: none; user-select: none; color: var(--ghost); transform-origin: 50% 50%; }
-.ghost .line { position: absolute; left: 50%; top: 50%; overflow: hidden; white-space: nowrap; padding-inline: .04em; }
+.ghost .line { position: absolute; left: 50%; top: 50%; white-space: nowrap; padding-inline: .04em; clip-path: inset(-.06em -100vw); }  /* 세로로만 가린다: 가로로 흘러가도 잘리지 않게 */
 .ghost .line > span { display: block; }
 /* 한글 제목: 아래 40%가 책에 가린다 */
 .ghost .ko {
   font-family: var(--f-ko-display); font-weight: 400;
   font-size: clamp(76px, 16.5vw, 262px); line-height: 1.08; letter-spacing: -.005em;
-  transform: translate(-50%, calc(var(--bh, 50vh) / -2 - .66em));
+  transform: translate(-50%, calc(var(--bh, 50vh) / -2 - .5em));
 }
 /* 영문 제목: 책 아랫단이 위쪽을 살짝 덮는다 */
 .ghost .en {
@@ -573,7 +573,7 @@ body.returning .continue { display: inline-flex; }
 
   const startDist = () => {
     const a = innerWidth / innerHeight;
-    return Math.max(CH / ((isMobile() ? .46 : .55) * 2 * TANH), CW / ((isMobile() ? .58 : .5) * 2 * TANH * a));
+    return Math.max(CH / ((isMobile() ? .54 : .64) * 2 * TANH), CW / ((isMobile() ? .7 : .56) * 2 * TANH * a));
   };
   const endDist = () => {
     const a = innerWidth / innerHeight, TW = isMobile() ? PW : 2 * PW;
@@ -898,19 +898,32 @@ body.returning .continue { display: inline-flex; }
     }
     startTicker();
     tl = gsap.timeline({ onComplete: () => endIntro(false) });
-    tl.from(lines, { yPercent: 112, duration: 1.25, ease: "expo.out", stagger: .09 }, 0)
+    // 벽의 제목이 흘러간다: 국문은 왼→오(빠르게 출발, 느린 중간, 끝에서 가속),
+    // 영문은 오→왼(느린 출발, 빠른 중간, 길게 감속). 서로 엇갈리며 가려진 글자가 드러난다.
+    const ko = ghost.querySelector(".ko > span"), en = ghost.querySelector(".en > span");
+    const drift = gsap.timeline();
+    drift.fromTo(ko, { x: "-16vw" }, { x: "-5vw", duration: 1.1, ease: "power3.out" }, 0)
+      .to(ko, { x: "0vw", duration: 2.1, ease: "sine.inOut" })
+      .to(ko, { x: "11vw", duration: 2.0, ease: "power2.in" })
+      .fromTo(en, { x: "18vw" }, { x: "13vw", duration: 1.3, ease: "sine.in" }, .15)
+      .to(en, { x: "-2vw", duration: 1.05, ease: "power2.inOut" })
+      .to(en, { x: "-11vw", duration: 2.8, ease: "expo.out" });
+    tl.add(drift, 0)
+      .from(lines, { yPercent: 112, duration: 1.25, ease: "expo.out", stagger: .09 }, 0)
       .from(chrome, { opacity: 0, duration: .8 }, .3)
       .fromTo(glCanvas, { opacity: 0 }, { opacity: 1, duration: .9, ease: "power1.out" }, .25)
       .to(S, { enter: 1, duration: 1.6, ease: "expo.out" }, .25)
-      .to(S, { face: 1, duration: 1.5, ease: "power3.inOut" }, 1.55)
-      .to(S, { cover: 1, duration: 1.45, ease: "power3.inOut" }, 1.75)
-      .to(S.pages, { 0: 1, duration: 1.15, ease: "power2.inOut" }, 2.55)
-      .to(S.pages, { 1: 1, duration: 1.15, ease: "power2.inOut" }, 2.76)
-      .to(S.pages, { 2: 1, duration: 1.15, ease: "power2.inOut" }, 2.97)
-      .to(S, { zoom: 1, duration: 2.0, ease: "power3.inOut" }, 2.25)
-      .to(ghost, { scale: 1.18, opacity: 0, filter: "blur(8px)", duration: 1.3, ease: "power2.in" }, 2.1)
-      .to(chrome, { opacity: 0, duration: .5 }, 2.2)
-      .to(S, { flat: 1, duration: .6, ease: "power1.inOut" }, 3.65);
+      // 1) 책이 스르륵 펴진다
+      .to(S, { face: 1, duration: 1.6, ease: "power2.inOut" }, 1.5)
+      .to(S, { cover: 1, duration: 1.7, ease: "power2.inOut" }, 1.65)
+      .to(S.pages, { 0: 1, duration: 1.25, ease: "power2.inOut" }, 2.6)
+      .to(S.pages, { 1: 1, duration: 1.25, ease: "power2.inOut" }, 2.85)
+      .to(S.pages, { 2: 1, duration: 1.25, ease: "power2.inOut" }, 3.1)
+      // 2) 다 펴진 뒤 카메라가 들어가 화면을 채운다
+      .to(S, { zoom: 1, duration: 1.9, ease: "power3.inOut" }, 4.15)
+      .to(ghost, { scale: 1.16, opacity: 0, filter: "blur(8px)", duration: 1.2, ease: "power2.in" }, 4.0)
+      .to(chrome, { opacity: 0, duration: .5 }, 4.0)
+      .to(S, { flat: 1, duration: .6, ease: "power1.inOut" }, 5.45);
     if (window.__pauseIntro) { tl.pause(); stopTicker(); }   // 화면 확인용
   }
   function finish() {
