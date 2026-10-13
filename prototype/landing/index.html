@@ -558,7 +558,7 @@ body.returning .continue { display: inline-flex; }
   const FOV = 28, TANH = Math.tan(FOV / 2 * D2R);
   const isMobile = () => innerWidth <= 760;
   const lerp = (a, b, t) => a + (b - a) * t;
-  const S = { enter: 0, face: 0, cover: 0, pages: [0, 0, 0, 0], zoom: 0, flat: 0, px: 0, py: 0, tx: 0, ty: 0 };
+  const S = { enter: 0, face: 0, cover: 0, pages: [0, 0, 0, 0, 0], zoom: 0, flat: 0, px: 0, py: 0, tx: 0, ty: 0 };
   let G = null;
 
   const startDist = () => {
@@ -740,9 +740,11 @@ body.returning .continue { display: inline-flex; }
       { recto: plate(1, "left"), verso: plate(2, "right") },
       { recto: plate(3, "left"), verso: plate(4, "right") },
       { recto: plate(5, "left"), verso: plate(6, "right") },
+      { recto: plate(7, "left"),   // 칸딘스키를 넘기면 빈 양면이 열리고, 그 양면이 연표가 된다
+        verso: (c, w, h) => { paperBase(c, w, h, 21); gutter(c, w, h, "right"); } },
     ];
     await breathe();
-    const blockTop = tex(makeCanvas(pw, ph, plate(7, "left")));   // 마지막 양면의 오른쪽: 빈 종이 대신 도판
+    const blockTop = tex(makeCanvas(pw, ph, (c, w, h) => { paperBase(c, w, h, 8); gutter(c, w, h, "left"); }));
     const edge = (vertical) => tex(makeCanvas(vertical ? 512 : 64, vertical ? 64 : 512, (c, w, h) => {
       c.fillStyle = "#efece5"; c.fillRect(0, 0, w, h);
       const n = vertical ? w : h;
@@ -848,7 +850,7 @@ body.returning .continue { display: inline-flex; }
   addEventListener("pointermove", e => { S.tx = e.clientX / innerWidth - .5; S.ty = e.clientY / innerHeight - .5; }, { passive: true });
 
   function resetState() {
-    Object.assign(S, { enter: 0, face: 0, cover: 0, pages: [0, 0, 0, 0], zoom: 0, flat: 0 });
+    Object.assign(S, { enter: 0, face: 0, cover: 0, pages: [0, 0, 0, 0, 0], zoom: 0, flat: 0 });
   }
   function revealSpread(quick) {
     const items = [...spread.querySelectorAll("[data-r], .era")];
@@ -914,14 +916,16 @@ body.returning .continue { display: inline-flex; }
       .to(S.pages, { 0: 1, duration: 1.05, ease: "power2.inOut" }, 2.85)
       .to(S.pages, { 1: 1, duration: .75, ease: "power2.inOut" }, 3.55)
       .to(S.pages, { 2: 1, duration: .75, ease: "power2.inOut" }, 3.75)
-      .to(S.pages, { 3: 1, duration: .8, ease: "power2.inOut" }, 3.95)
-      // 2) 마지막 양면(모네 | 칸딘스키)이 열리면 카메라가 들어가 화면을 채운다
-      .to(S, { zoom: 1, duration: 1.55, ease: "power3.inOut" }, 4.55)
-      .to(ghost, { scale: 1.16, opacity: 0, filter: "blur(8px)", duration: 1.0, ease: "power2.in" }, 4.55)
-      .to(chrome, { opacity: 0, duration: .5 }, 4.45)
-      .to(S, { flat: 1, duration: .45, ease: "power1.inOut" }, 5.15)
+      .to(S.pages, { 3: 1, duration: .75, ease: "power2.inOut" }, 3.95)
+      // 모네 | 칸딘스키 양면에서 한 장 더 넘기면 빈 양면
+      .to(S.pages, { 4: 1, duration: .9, ease: "power2.inOut" }, 4.45)
+      // 2) 빈 양면이 열리면 카메라가 들어가 화면을 채운다
+      .to(S, { zoom: 1, duration: 1.55, ease: "power3.inOut" }, 5.2)
+      .to(ghost, { scale: 1.16, opacity: 0, filter: "blur(8px)", duration: 1.0, ease: "power2.in" }, 5.1)
+      .to(chrome, { opacity: 0, duration: .5 }, 5.0)
+      .to(S, { flat: 1, duration: .45, ease: "power1.inOut" }, 5.8)
       // 3) 확대가 끝나기 전에 연표 내용이 겹쳐 떠오른다
-      .call(() => endIntro(false), null, 5.65);
+      .call(() => endIntro(false), null, 6.3);
     intro.classList.add("live");   // 시작 상태(가린 제목, 투명한 책)가 적용된 뒤에 보이게 한다
     if (window.__pauseIntro) { tl.pause(); stopTicker(); }   // 화면 확인용
   }
