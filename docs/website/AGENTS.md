@@ -5,6 +5,7 @@
 | 파일 | 내용 |
 | --- | --- |
 | [decisions.md](decisions.md) | 사용자 인터뷰로 확정한 사항과 미정 사항 |
+| [landing-sketches.md](landing-sketches.md) | 랜딩 연표 선화 8점의 진행 상황과 나중에 고칠 점 |
 | [expert-ux-review.md](expert-ux-review.md) | UX/UI 디자이너 관점 의견 (Apple 10년 이상 경력 가정) |
 | [expert-ux-landing.md](expert-ux-landing.md) | 랜딩 페이지(책 펼침)와 이메일 없는 계정 설계 (UX/UI 디자이너) |
 | [expert-design-pencil-timeline.md](expert-design-pencil-timeline.md) | "들어가며" 양면의 연필 선 연표 디자인 (애플·디즈니 시니어 디자이너 가정) |
