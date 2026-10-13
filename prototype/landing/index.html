@@ -44,6 +44,8 @@ button { font: inherit; color: inherit; }
   background-image: radial-gradient(90vmax 70vmax at 28% 18%, #fbfaf8 0%, rgba(251,250,248,0) 60%);
 }
 #intro[hidden] { display: none !important; }
+/* 애니메이션이 시작되기 전(폰트·WebGL 준비 중)에는 벽만 보인다. 제목과 책이 미리 떴다 사라지는 깜빡임 방지 */
+#intro:not(.live) > * { visibility: hidden; }
 #gl { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .ghost { position: absolute; inset: 0; pointer-events: none; user-select: none; color: var(--ghost); transform-origin: 50% 50%; }
 .ghost .line { position: absolute; left: 50%; top: 50%; white-space: nowrap; padding-inline: .04em; clip-path: inset(-.06em -100vw); }  /* 세로로만 가린다: 가로로 흘러가도 잘리지 않게 */
@@ -918,6 +920,7 @@ body.returning .continue { display: inline-flex; }
       tl = gsap.timeline({ onComplete: () => endIntro(false) });
       tl.from(lines, { yPercent: reduce ? 0 : 110, opacity: reduce ? 0 : 1, duration: 1, ease: "expo.out", stagger: .08 })
         .to({}, { duration: .9 });
+      intro.classList.add("live");
       return;
     }
     startTicker();
@@ -950,6 +953,7 @@ body.returning .continue { display: inline-flex; }
       .to(S, { flat: 1, duration: .45, ease: "power1.inOut" }, 4.6)
       // 3) 확대가 끝나기 전에 연표 내용이 겹쳐 떠오른다
       .call(() => endIntro(false), null, 5.1);
+    intro.classList.add("live");   // 시작 상태(가린 제목, 투명한 책)가 적용된 뒤에 보이게 한다
     if (window.__pauseIntro) { tl.pause(); stopTicker(); }   // 화면 확인용
   }
   function finish() {
