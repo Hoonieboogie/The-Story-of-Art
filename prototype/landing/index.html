@@ -885,12 +885,12 @@ body.returning .continue { display: inline-flex; }
     if (!hasGsap || reduce) return;
     gsap.killTweensOf(items);
     if (quick) { gsap.set(items, { clearProps: "all" }); return; }
-    gsap.fromTo(spread.querySelectorAll("[data-r]"), { y: 18, opacity: 0 }, { y: 0, opacity: 1, duration: 1, ease: "expo.out", stagger: .06, clearProps: "all" });
+    gsap.fromTo(spread.querySelectorAll("[data-r]"), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: .75, ease: "expo.out", stagger: .035, clearProps: "all" });
     eraEls.forEach((el, i) => {
-      const d = .12 + i * .07;
-      gsap.fromTo(el.querySelector(".tick"), { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: .6, ease: "power2.inOut", delay: d, clearProps: "clipPath" });
-      gsap.fromTo(el.querySelector(".plate img"), { clipPath: "inset(100% 0 0 0)", scale: 1.25 }, { clipPath: "inset(0% 0 0 0)", scale: 1, duration: 1.1, ease: "expo.out", delay: d + .1, clearProps: "clipPath,transform,scale" });
-      gsap.fromTo(el.querySelector(".era-text"), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: .9, ease: "expo.out", delay: d + .22, clearProps: "all" });
+      const d = .04 + i * .035;
+      gsap.fromTo(el.querySelector(".tick"), { clipPath: "inset(0 100% 0 0)" }, { clipPath: "inset(0 0% 0 0)", duration: .45, ease: "power2.inOut", delay: d, clearProps: "clipPath" });
+      gsap.fromTo(el.querySelector(".plate img"), { clipPath: "inset(100% 0 0 0)", scale: 1.25 }, { clipPath: "inset(0% 0 0 0)", scale: 1, duration: .8, ease: "expo.out", delay: d + .05, clearProps: "clipPath,transform,scale" });
+      gsap.fromTo(el.querySelector(".era-text"), { y: 14, opacity: 0 }, { y: 0, opacity: 1, duration: .7, ease: "expo.out", delay: d + .12, clearProps: "all" });
     });
     if (document.body.classList.contains("returning")) dropRibbon();
   }
@@ -899,7 +899,7 @@ body.returning .continue { display: inline-flex; }
     detachSkip();
     const done = () => { intro.hidden = true; stopTicker(); document.documentElement.classList.remove("intro-on"); };
     if (!hasGsap || quick) { done(); revealSpread(!hasGsap); return; }
-    gsap.to(intro, { opacity: 0, duration: .55, ease: "power1.inOut", onComplete: done });
+    gsap.to(intro, { opacity: 0, duration: .45, ease: "power1.inOut", onComplete: done });
     revealSpread(false);
   }
 
@@ -921,7 +921,7 @@ body.returning .continue { display: inline-flex; }
       return;
     }
     startTicker();
-    tl = gsap.timeline({ onComplete: () => endIntro(false) });
+    tl = gsap.timeline();
     // 벽의 제목이 흘러간다: 국문은 왼→오(빠르게 출발, 느린 중간, 끝에서 가속),
     // 영문은 오→왼(느린 출발, 빠른 중간, 길게 감속). 서로 엇갈리며 가려진 글자가 드러난다.
     const ko = ghost.querySelector(".ko > span"), en = ghost.querySelector(".en > span");
@@ -944,10 +944,12 @@ body.returning .continue { display: inline-flex; }
       .to(S.pages, { 1: 1, duration: 1.25, ease: "power2.inOut" }, 2.85)
       .to(S.pages, { 2: 1, duration: 1.25, ease: "power2.inOut" }, 3.1)
       // 2) 다 펴진 뒤 카메라가 들어가 화면을 채운다
-      .to(S, { zoom: 1, duration: 1.9, ease: "power3.inOut" }, 4.15)
-      .to(ghost, { scale: 1.16, opacity: 0, filter: "blur(8px)", duration: 1.2, ease: "power2.in" }, 4.0)
-      .to(chrome, { opacity: 0, duration: .5 }, 4.0)
-      .to(S, { flat: 1, duration: .6, ease: "power1.inOut" }, 5.45);
+      .to(S, { zoom: 1, duration: 1.55, ease: "power3.inOut" }, 4.0)
+      .to(ghost, { scale: 1.16, opacity: 0, filter: "blur(8px)", duration: 1.0, ease: "power2.in" }, 3.9)
+      .to(chrome, { opacity: 0, duration: .5 }, 3.9)
+      .to(S, { flat: 1, duration: .45, ease: "power1.inOut" }, 4.6)
+      // 3) 확대가 끝나기 전에 연표 내용이 겹쳐 떠오른다
+      .call(() => endIntro(false), null, 5.1);
     if (window.__pauseIntro) { tl.pause(); stopTicker(); }   // 화면 확인용
   }
   function finish() {
