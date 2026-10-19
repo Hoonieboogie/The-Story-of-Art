@@ -22,7 +22,7 @@
 | 2026-10-13 | 랜딩 시제품 v2 | 흰 책 WebGL 인트로(WALK IN / STAY CURIOUS, Welcome, 도판 넘김) → 펼친 양면 연표: 매끈한 연필 선 하나, 번호 없는 점 8개, 인용구 |
 | 2026-10-13 | 연표 선화 8점 1차 완성 | 시대마다 누구나 아는 작품 한 점. 세부 고도화는 나중에 ([landing-sketches.md](../website/landing-sketches.md)) |
 | 2026-10-19 | heesun(기획·마케팅) 작업 규칙과 훅 | 세션 시작 시 "heesun 님이신가요?" 질문, `heesun/<날짜-주제>` 브랜치 전용 작업, 작업마다 커밋, 끝나면 푸시 ([heesun/AGENTS.md](../../heesun/AGENTS.md)). 실제 Claude 데스크톱 테스트는 사용자가 진행 예정 |
-| 2026-10-19 | heesun 하네스 보강 | 개발 용어 금지 표(마크다운·확장자·경로 등도 풀어 말하기), heesun 확인 뒤 "어떤 작업을 해볼까요?"를 훅으로 강제하고 그 답으로 브랜치 이름 결정 (UserPromptSubmit `heesun-prompt.sh`, Stop 훅 보강) |
+| 2026-10-19 | heesun 하네스 보강 | 개발 용어 금지 표(마크다운·확장자·경로 등도 풀어 말하기), 첫 질문에서 heesun인지와 할 일을 한 번에 묻고, 할 일을 안 말했으면 "어떤 작업을 해볼까요?"를 훅으로 강제, 그 답으로 브랜치 이름 결정 (UserPromptSubmit `heesun-prompt.sh`, Stop 훅 보강) |
 
 ## 두 소스 요약
 

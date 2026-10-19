@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # heesun 세션 Stop 훅.
-# 0) heesun/* 브랜치가 아직 없을 때: "heesun 님이신가요?"에 맞다고 답하면 "어떤 작업을 해볼까요?"를 묻게 강제
+# 0) heesun/* 브랜치가 아직 없을 때: 세션 첫 질문 "heesun 님이신가요?"에 맞다고 답했으면, 브랜치를 만들었거나 "어떤 작업을 해볼까요?"를 물어야 끝낼 수 있다
 # heesun/* 브랜치에서:
 # 1) heesun/ 밖 변경 금지  2) 작업마다 커밋 강제  3) 올리기 전까지 매 턴 끝에 "오늘 작업 끝났나요?"를 묻게 강제
 input=$(cat)
@@ -17,11 +17,11 @@ case "$branch" in
   heesun/*) ;;
   *)
     [ -n "$transcript" ] && [ -f "$transcript" ] || exit 0
-    # 마지막 사용자 메시지 직전의 답(p), 그 사용자 메시지(u), 이번 턴의 마지막 답(a)
-    need=$(awk '/"type":"assistant"/ && /"type":"text"/ { a = $0; next }
-                /"type":"user"/ && !/"tool_result"/ { p = a; u = $0 }
-                END { if (p ~ /heesun 님이신가요/ && u !~ /아니|아뇨|아님|개발/ && a !~ /어떤 작업을 해볼까요/) print "ask" }' "$transcript")
-    [ "$need" = ask ] && block "heesun 세션 규칙: heesun이라고 답했다. 다른 일 없이 이번 답의 끝에 짧게 '어떤 작업을 해볼까요?'라고 물어라(이 문구 그대로). 작업 공간 이름은 그 답을 듣고 heesun/AGENTS.md 4절대로 정한다. heesun이 아니라는 뜻이었다면 그 질문 없이 끝내도 된다."
+    # 세션 첫 답(f)이 신원 질문이고, 마지막 사용자 메시지(u)가 그 첫 답 바로 뒤의 것이면(k == 1), 이번 턴 마지막 답(a)을 본다
+    need=$(awk '/"type":"assistant"/ && /"type":"text"/ { n++; if (n == 1) f = $0; a = $0; next }
+                /"type":"user"/ && !/"tool_result"/ { k = n; u = $0 }
+                END { if (k == 1 && f ~ /heesun 님이신가요/ && u !~ /아니|아뇨|아님|개발/ && a !~ /어떤 작업을 해볼까요/) print "ask" }' "$transcript")
+    [ "$need" = ask ] && block "heesun 세션 규칙: heesun이라고 답했는데 작업 공간이 아직 없다. 할 일을 말했다면 heesun/AGENTS.md 4절대로 그 주제로 브랜치를 지금 만들어라. 할 일을 말하지 않았다면 이번 답의 끝에 짧게 '어떤 작업을 해볼까요?'라고 물어라(이 문구 그대로). heesun이 아니라는 뜻이었다면 그냥 끝내도 된다."
     exit 0 ;;
 esac
 
