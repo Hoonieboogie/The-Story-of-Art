@@ -1,6 +1,6 @@
 # 진행 상황
 
-> 마지막 갱신: 2026-10-13 · 브랜치: `claude/gombrich-story-of-art-ip4n2c`
+> 마지막 갱신: 2026-10-19 · 브랜치: `claude/gombrich-story-of-art-ip4n2c`
 
 ## 목표
 
@@ -21,6 +21,7 @@
 | 2026-10-12 | 랜딩 시제품 v1 | [prototype/](../../prototype/AGENTS.md): "책이 뜬다 → 열린다 → 타임라인" 흐름만 확정, 나머지는 다시 정한다 |
 | 2026-10-13 | 랜딩 시제품 v2 | 흰 책 WebGL 인트로(WALK IN / STAY CURIOUS, Welcome, 도판 넘김) → 펼친 양면 연표: 매끈한 연필 선 하나, 번호 없는 점 8개, 인용구 |
 | 2026-10-13 | 연표 선화 8점 1차 완성 | 시대마다 누구나 아는 작품 한 점. 세부 고도화는 나중에 ([landing-sketches.md](../website/landing-sketches.md)) |
+| 2026-10-19 | heesun(기획·마케팅) 작업 규칙과 훅 | 세션 시작 시 "heesun 님이신가요?" 질문, `heesun/<날짜-주제>` 브랜치 전용 작업, 작업마다 커밋, 끝나면 푸시 ([heesun/AGENTS.md](../../heesun/AGENTS.md)). 실제 Claude 데스크톱 테스트는 사용자가 진행 예정 |
 
 ## 두 소스 요약
 
