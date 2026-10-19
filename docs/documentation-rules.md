@@ -29,3 +29,4 @@
 ## 문서 밖 폴더
 
 - `prototype/`처럼 `docs/` 밖의 폴더에도 `AGENTS.md`를 두고 내용물을 나열한다. 저장소 루트 `AGENTS.md`에서 링크한다.
+- `heesun/`은 기획·마케팅 담당 heesun의 자유 작업 폴더다. 이 문서 규칙을 적용하지 않고, [heesun/AGENTS.md](../heesun/AGENTS.md)의 규칙을 따른다.

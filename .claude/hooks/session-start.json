@@ -1,0 +1,1 @@
+{"hookSpecificOutput":{"hookEventName":"SessionStart","additionalContext":"[세션 시작 규칙 - 저장소 AGENTS.md] 사용자의 첫 메시지가 무엇이든, 다른 일을 하기 전에 먼저 \"혹시 heesun 님이신가요?\"라고 물어라. 대답을 듣기 전에는 파일을 읽거나 바꾸지 마라. heesun이면 heesun/AGENTS.md를 읽고 그 규칙만 따른다. 아니면 AGENTS.md의 개발용 안내를 따른다."}}
