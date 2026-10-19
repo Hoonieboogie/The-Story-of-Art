@@ -3,7 +3,7 @@
 # 0) heesun/* 브랜치가 아직 없을 때: 세션 첫 질문 "heesun 님이신가요?"에 맞다고 답했으면, 브랜치를 만들었거나 "어떤 작업을 해볼까요?"를 물어야 끝낼 수 있다
 #    개발자라고 답했으면, 그 턴 안에 원격 기본 브랜치(와 현재 브랜치의 원격)를 현재 브랜치에 합쳐야 끝낼 수 있다
 # heesun/* 브랜치에서:
-# 1) heesun/ 밖 변경 금지  2) 작업마다 커밋 강제  3) 올리기 전까지 매 턴 끝에 "오늘 작업 끝났나요?"를 묻게 강제
+# 1) heesun/ 밖 변경 금지  2) 작업마다 커밋 강제  3) 올리지 않은 저장분이 있으면 턴 끝에 "오늘 작업 끝났나요?"를 묻게 강제(heesun에게 다른 질문을 하고 기다리는 턴은 통과)
 input=$(cat)
 cd "${CLAUDE_PROJECT_DIR:-.}" 2>/dev/null || exit 0
 branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null) || exit 0
@@ -42,10 +42,10 @@ if [ -n "$outside" ]; then
   block "heesun 세션 규칙: heesun/ 폴더 밖에 바뀐 파일이 있다. heesun이 만든 것이 아니면 되돌리고, 꼭 필요한 변경이면 되돌린 뒤 heesun/to-dev.md에 요청으로 적어라. (heesun/AGENTS.md 2절)"
 fi
 if [ -n "$changes" ]; then
-  block "heesun 세션 규칙: 커밋하지 않은 변경이 있다. 방금 한 작업을 지금 커밋하라(작업 하나에 커밋 하나, 한국어 한 줄 메시지, git add heesun/ 만). 업로드(push)는 heesun이 오늘 작업이 끝났다고 할 때만 한다. 그다음 턴 마지막에 짧게 '오늘 작업 끝났나요?'라고 물어라."
+  block "heesun 세션 규칙: 커밋하지 않은 변경이 있다. 방금 한 작업을 지금 커밋하라(작업 하나에 커밋 하나, 한국어 한 줄 메시지, git add heesun/ 만). 업로드(push)는 heesun이 오늘 작업이 끝났다고 할 때만 한다. 그다음 이번 턴의 할 일을 마쳤으면 마지막에 짧게 '오늘 작업 끝났나요?'라고 물어라."
 fi
 
-# 아직 올리지 않은 커밋이 있으면 매 턴 끝에 물어야 한다
+# 아직 올리지 않은 커밋이 있으면 턴 끝에 물어야 한다
 if git rev-parse --abbrev-ref '@{u}' >/dev/null 2>&1; then
   ahead=$(git rev-list --count '@{u}..HEAD' 2>/dev/null)
 else
@@ -54,8 +54,9 @@ fi
 [ "${ahead:-0}" -gt 0 ] || exit 0
 
 if [ -n "$transcript" ] && [ -f "$transcript" ]; then
-  if grep '"type":"assistant"' "$transcript" | grep '"type":"text"' | tail -n 1 | grep -q '오늘 작업 끝났나요'; then
-    exit 0
-  fi
+  last=$(grep '"type":"assistant"' "$transcript" | grep '"type":"text"' | tail -n 1)
+  printf '%s' "$last" | grep -q '오늘 작업 끝났나요' && exit 0
+  # heesun에게 질문하고 답을 기다리는 턴(답이 물음표로 끝남)이면 같이 묻지 않는다
+  printf '%s' "$last" | grep -Eq '[?？]( |\\n)*"\}' && exit 0
 fi
-block "heesun 세션 규칙: 아직 올리지 않은 작업이 있다. 이번 답의 맨 끝에 아주 짧게 '오늘 작업 끝났나요?'라고 물어라. 끝났다고 하면 git push -u origin $branch 로 올리고 결과를 한 줄로 알린다."
+block "heesun 세션 규칙: 아직 올리지 않은 작업이 있다. heesun의 답을 기다리는 중이 아니면 이번 답의 맨 끝에 아주 짧게 '오늘 작업 끝났나요?'라고 물어라. 끝났다고 하면 git push -u origin $branch 로 올리고 결과를 한 줄로 알린다."
