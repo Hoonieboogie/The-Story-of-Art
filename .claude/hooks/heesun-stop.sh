@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # heesun 세션 Stop 훅.
 # 0) heesun/* 브랜치가 아직 없을 때: 세션 첫 질문 "heesun 님이신가요?"에 맞다고 답했으면, 브랜치를 만들었거나 "어떤 작업을 해볼까요?"를 물어야 끝낼 수 있다
-#    개발자라고 답했으면, 그 턴 안에 원격 기본 브랜치(와 현재 브랜치의 원격)를 현재 브랜치에 합쳐야 끝낼 수 있다
+#    개발자라고 답했으면, 그 턴 안에 원격 기본 브랜치(와 현재 브랜치의 원격, origin/heesun/* 브랜치)를 현재 브랜치에 합쳐야 끝낼 수 있다
 # heesun/* 브랜치에서:
 # 1) heesun/ 밖 변경 금지  2) 작업마다 커밋 강제  3) 올리지 않은 저장분이 있으면 턴 끝에 "오늘 작업 끝났나요?"를 묻게 강제(heesun에게 다른 질문을 하고 기다리는 턴은 통과)
 input=$(cat)
@@ -29,6 +29,9 @@ case "$branch" in
         git rev-parse -q --verify "$ref" >/dev/null 2>&1 || continue
         git merge-base --is-ancestor "$ref" HEAD 2>/dev/null && continue
         block "개발 세션 규칙: $ref 의 최신 내용이 아직 현재 브랜치에 없다. 다른 일보다 먼저 합쳐라(origin/HEAD는 git merge --no-edit origin/HEAD, 현재 브랜치의 원격은 git pull --no-rebase). 충돌은 양쪽을 살려 해결하고, 판단이 필요하면 사용자에게 물어라."
+      done
+      for ref in $(git branch -r --list 'origin/heesun/*' --no-merged HEAD 2>/dev/null | sed 's/^ *//'); do
+        block "개발 세션 규칙: heesun 브랜치 $ref 의 내용이 아직 현재 브랜치에 없다. 다른 일보다 먼저 git merge --no-edit $ref 로 합치고 변경 요약과 heesun/to-dev.md의 새 질문·요청을 사용자에게 보여 줘라. heesun/ 밖 충돌은 사용자에게 물어라."
       done
       exit 0
     fi

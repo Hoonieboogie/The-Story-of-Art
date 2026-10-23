@@ -2,7 +2,7 @@
 # 사용자 메시지마다(UserPromptSubmit) heesun 세션 시작 흐름을 이어 준다. heesun/* 브랜치가 생기면 작동하지 않는다.
 # - 세션 첫 답("heesun 님이신가요? 맞다면 할 일도")에 대한 답이면: 할 일을 말했으면 브랜치부터, 안 했으면 "어떤 작업을 해볼까요?"만.
 # - 두 번째 답이 "어떤 작업을 해볼까요?"였으면: 그 답으로 브랜치를 만들게 한다.
-# - 첫 질문에 개발자라고(아니·아뇨·아님·개발) 답하면: 최신 내용을 받아 오고, main과 합치지 않은 heesun 브랜치를 알린다.
+# - 첫 질문에 개발자라고(아니·아뇨·아님·개발) 답하면: 최신 내용을 받아 오고, 현재 브랜치에 없는 heesun 브랜치를 합쳐 내용을 보여 주게 한다.
 # - heesun 세션 첫 답이면: 개발 담당자의 새 답변(heesun/dev-response.md, 상태 "새 답변")이 아직 전달 안 됐는지 보고 알린다.
 # 질문 문구가 설명 속에 나와도 오작동하지 않게 세션 처음 두 답만 본다.
 input=$(cat)
@@ -33,9 +33,9 @@ if [ "$n" -eq 1 ] && printf '%s' "$input" | grep -q '"prompt": *"[^"]*\(아니\|
   if [ "${behind:-0}" -gt 0 ]; then
     main="기본 브랜치(origin/HEAD)가 현재 브랜치보다 커밋 ${behind}개 앞서 있다. 다른 일보다 먼저 git merge --no-edit origin/HEAD로 합쳐라(충돌은 양쪽 내용을 살려 해결하고, 어느 쪽을 고를지 판단이 필요하면 사용자에게 물어라). 합치기 전에는 이번 턴을 끝낼 수 없다(Stop 훅)."
   else main="기본 브랜치 내용은 이미 현재 브랜치에 들어 있다."; fi
-  hs=$(git branch -r --list 'origin/heesun/*' --no-merged origin/HEAD 2>/dev/null | sed 's/^ *//' | tr '\n' ' ' | sed 's/ *$//')
-  if [ -n "$hs" ]; then hsmsg="아직 기본 브랜치에 합치지 않은 heesun 브랜치: ${hs}. 사용자에게 목록과 각 브랜치의 변경 요약을 보여 주고 합칠지 물어라."
-  else hsmsg="합치지 않은 heesun 브랜치는 없다."; fi
+  hs=$(git branch -r --list 'origin/heesun/*' --no-merged HEAD 2>/dev/null | sed 's/^ *//' | tr '\n' ' ' | sed 's/ *$//')
+  if [ -n "$hs" ]; then hsmsg="현재 브랜치에 아직 없는 heesun 브랜치: ${hs}. 다른 일보다 먼저 오래된 것부터 하나씩 git merge --no-edit <브랜치>로 합쳐라(heesun 브랜치는 heesun/ 안만 바꾸므로 보통 충돌이 없다. 충돌하면 heesun 파일은 양쪽을 살리고, heesun/ 밖 충돌은 사용자에게 물어라). 합친 뒤 변경 요약과 heesun/to-dev.md의 새 질문·요청을 사용자에게 보여 주고, 답이 필요하면 heesun/dev-response.md에 적을지 물어라. 합치기 전에는 이번 턴을 끝낼 수 없다(Stop 훅)."
+  else hsmsg="현재 브랜치에 없는 heesun 브랜치는 없다."; fi
   say "[개발 세션 시작] 사용자는 개발자다. 저장소 AGENTS.md의 개발용 안내를 따른다. 훅이 원격 최신 내용을 ${fetched} ${up} ${main} ${hsmsg} 결과를 사용자에게 짧게 알려라."
 fi
 if [ "$n" -eq 1 ]; then
